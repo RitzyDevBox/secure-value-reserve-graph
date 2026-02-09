@@ -1,0 +1,6 @@
+type ExampleEntity @entity(immutable: true) {
+  id: Bytes!
+  count: BigInt!
+  deployer: Bytes! # address
+  namespace: Bytes! # bytes32
+}

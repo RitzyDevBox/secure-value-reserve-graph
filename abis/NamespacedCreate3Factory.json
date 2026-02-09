@@ -1,0 +1,107 @@
+[
+  {
+    "type": "function",
+    "name": "deploy",
+    "inputs": [
+      { "name": "templateOwner", "type": "address", "internalType": "address" },
+      { "name": "templateName", "type": "string", "internalType": "string" },
+      { "name": "constructorParams", "type": "bytes", "internalType": "bytes" },
+      { "name": "initData", "type": "bytes", "internalType": "bytes" }
+    ],
+    "outputs": [
+      { "name": "deployed", "type": "address", "internalType": "address" }
+    ],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "deploymentCount",
+    "inputs": [
+      { "name": "", "type": "address", "internalType": "address" },
+      { "name": "", "type": "bytes32", "internalType": "bytes32" }
+    ],
+    "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "predictAddress",
+    "inputs": [
+      { "name": "deployer", "type": "address", "internalType": "address" },
+      { "name": "templateOwner", "type": "address", "internalType": "address" },
+      { "name": "templateName", "type": "string", "internalType": "string" },
+      { "name": "index", "type": "uint256", "internalType": "uint256" }
+    ],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "registerTemplate",
+    "inputs": [
+      { "name": "templateName", "type": "string", "internalType": "string" },
+      { "name": "provider", "type": "address", "internalType": "address" }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "templateProvider",
+    "inputs": [{ "name": "", "type": "bytes32", "internalType": "bytes32" }],
+    "outputs": [{ "name": "", "type": "address", "internalType": "address" }],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "NamespacedDeployment",
+    "inputs": [
+      {
+        "name": "deployer",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "namespace",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "index",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "deployed",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "TemplateRegistered",
+    "inputs": [
+      {
+        "name": "namespace",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "provider",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  { "type": "error", "name": "TemplateAlreadyRegistered", "inputs": [] },
+  { "type": "error", "name": "TemplateNotRegistered", "inputs": [] }
+]
