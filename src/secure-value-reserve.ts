@@ -1,20 +1,28 @@
 import {
   ProposePolicyEvent,
   ExecutePolicyEvent,
-  CancelPolicyEvent
+  CancelPolicyEvent,
+  ProposeEvent,
+  ExecuteEvent,
+  CancelEvent
 } from "../generated/templates/SecureValueReserve/SecureValueReserve";
 
 import {
   SVRPolicyProposed,
   SVRPolicyExecuted,
-  SVRPolicyCancelled
+  SVRPolicyCancelled,
+  SVRSlotProposed,
+  SVRSlotExecuted,
+  SVRSlotCancelled
 } from "../generated/schema";
-import { ethereum } from "@graphprotocol/graph-ts";
 
+import { ethereum } from "@graphprotocol/graph-ts";
 
 function id(event: ethereum.Event): string {
   return event.transaction.hash.toHexString() + "-" + event.logIndex.toString();
 }
+
+/* ---------------- POLICY GOVERNANCE ---------------- */
 
 export function handleProposePolicy(event: ProposePolicyEvent): void {
   let e = new SVRPolicyProposed(id(event));
@@ -54,6 +62,35 @@ export function handleCancelPolicy(event: CancelPolicyEvent): void {
   e.assetType = event.params.scope.assetType;
   e.asset = event.params.scope.asset;
   e.assetId = event.params.scope.id;
+  e.cancelledAt = event.block.timestamp;
+  e.save();
+}
+
+/* ---------------- SLOT / CONFIG GOVERNANCE ---------------- */
+
+export function handleProposeSlot(event: ProposeEvent): void {
+  let e = new SVRSlotProposed(id(event));
+  e.svr = event.address;
+  e.selector = event.params.selector;
+  e.newValue = event.params.newValue;
+  e.delay = event.params.delay;
+  e.createdAt = event.block.timestamp;
+  e.save();
+}
+
+export function handleExecuteSlot(event: ExecuteEvent): void {
+  let e = new SVRSlotExecuted(id(event));
+  e.svr = event.address;
+  e.selector = event.params.selector;
+  e.newValue = event.params.newValue;
+  e.executedAt = event.block.timestamp;
+  e.save();
+}
+
+export function handleCancelSlot(event: CancelEvent): void {
+  let e = new SVRSlotCancelled(id(event));
+  e.svr = event.address;
+  e.selector = event.params.selector;
   e.cancelledAt = event.block.timestamp;
   e.save();
 }

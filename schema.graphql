@@ -52,3 +52,27 @@ type SVRPolicyCancelled @entity(immutable: true) {
   assetId: BigInt!
   cancelledAt: BigInt!
 }
+
+type SVRSlotProposed @entity(immutable: true) {
+  id: ID!                # txHash + logIndex
+  svr: Bytes!
+  selector: Bytes!       # bytes4
+  newValue: BigInt!
+  delay: BigInt!
+  createdAt: BigInt!
+}
+
+type SVRSlotExecuted @entity(immutable: true) {
+  id: ID!
+  svr: Bytes!
+  selector: Bytes!       # bytes4
+  newValue: BigInt!
+  executedAt: BigInt!
+}
+
+type SVRSlotCancelled @entity(immutable: true) {
+  id: ID!
+  svr: Bytes!
+  selector: Bytes!
+  cancelledAt: BigInt!
+}

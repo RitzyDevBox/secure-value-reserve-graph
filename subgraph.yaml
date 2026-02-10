@@ -42,6 +42,9 @@ templates:
         - SVRPolicyProposed
         - SVRPolicyExecuted
         - SVRPolicyCancelled
+        - SVRSlotProposed
+        - SVRSlotExecuted
+        - SVRSlotCancelled
       abis:
         - name: SecureValueReserve
           file: ./abis/SecureValueReserve.json
@@ -52,3 +55,10 @@ templates:
           handler: handleExecutePolicy
         - event: CancelPolicyEvent(indexed bytes4,(uint8,uint8,address,uint256))
           handler: handleCancelPolicy
+        - event: ProposeEvent(indexed bytes4,uint256,uint32)
+          handler: handleProposeSlot
+        - event: ExecuteEvent(indexed bytes4,uint256)
+          handler: handleExecuteSlot
+        - event: CancelEvent(indexed bytes4)
+          handler: handleCancelSlot
+
