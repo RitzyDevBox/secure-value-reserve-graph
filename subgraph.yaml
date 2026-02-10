@@ -16,8 +16,8 @@ dataSources:
       apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
-        - NamespacedDeployment
-        - TemplateRegistered
+          - Deployment
+          - Template
       abis:
         - name: NamespacedCreate3Factory
           file: ./abis/NamespacedCreate3Factory.json
@@ -27,3 +27,28 @@ dataSources:
         - event: TemplateRegistered(indexed bytes32,address)
           handler: handleTemplateRegistered
       file: ./src/namespaced-create-3-factory.ts
+templates:
+  - name: SecureValueReserve
+    kind: ethereum
+    network: matic
+    source:
+      abi: SecureValueReserve
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/secure-value-reserve.ts    
+      entities:
+        - SVRPolicyProposed
+        - SVRPolicyExecuted
+        - SVRPolicyCancelled
+      abis:
+        - name: SecureValueReserve
+          file: ./abis/SecureValueReserve.json
+      eventHandlers:
+        - event: ProposePolicyEvent(indexed bytes4,(uint8,uint8,address,uint256),(uint8,uint32,uint32,uint256),uint32)
+          handler: handleProposePolicy
+        - event: ExecutePolicyEvent(indexed bytes4,(uint8,uint8,address,uint256),(uint8,uint32,uint32,uint256))
+          handler: handleExecutePolicy
+        - event: CancelPolicyEvent(indexed bytes4,(uint8,uint8,address,uint256))
+          handler: handleCancelPolicy

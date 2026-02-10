@@ -1,6 +1,54 @@
-type ExampleEntity @entity(immutable: true) {
-  id: Bytes!
-  count: BigInt!
-  deployer: Bytes! # address
-  namespace: Bytes! # bytes32
+type Deployment @entity(immutable: true) {
+  id: ID!
+  deployer: Bytes!
+  namespace: Bytes!
+  index: BigInt!
+  createdAt: BigInt!
+  txHash: Bytes!
+}
+
+type Template @entity(immutable: true) {
+  id: ID!
+  provider: Bytes!
+  createdAt: BigInt!
+  txHash: Bytes!
+}
+
+type SVRPolicyProposed @entity(immutable: true) {
+  id: ID!
+  svr: Bytes!
+  scopeKind: Int!
+  assetType: Int!
+  asset: Bytes!
+  assetId: BigInt!
+  kind: Int!
+  windowSeconds: BigInt!
+  proposalDelaySeconds: BigInt!
+  value: BigInt!
+  delay: BigInt!
+  createdAt: BigInt!
+}
+
+type SVRPolicyExecuted @entity(immutable: true) {
+  id: ID!
+  svr: Bytes!
+  scopeKind: Int!
+  assetType: Int!
+  asset: Bytes!
+  assetId: BigInt!
+  kind: Int!
+  windowSeconds: BigInt!
+  proposalDelaySeconds: BigInt!
+  value: BigInt!
+  executedAt: BigInt!
+}
+
+type SVRPolicyCancelled @entity(immutable: true) {
+  id: ID!
+  svr: Bytes!
+  scopeKind: Int!
+  assetType: Int!
+  asset: Bytes!
+  assetId: BigInt!
+  cancelledAt: BigInt!
 }
