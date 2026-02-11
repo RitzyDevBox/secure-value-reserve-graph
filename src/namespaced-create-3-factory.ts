@@ -5,9 +5,14 @@ import {
 import { SecureValueReserve as SVRTemplate } from "../generated/templates";
 
 import { Deployment, Template } from "../generated/schema";
-const SECURE_VALUE_RESERVER_NAMESPACE = "0xeece374668638a20fc64b121b39407ec17c2a6572e4bce749a16bff9c1996579";
+import { Bytes } from "@graphprotocol/graph-ts";
+import { SecureValueReserveInstance } from "../generated/schema";
+
+const SVR_NAMESPACE = Bytes.fromHexString("0x98e149ff9c9013a219cd71c27e8ddf5c1f7886dd7ac3ac1f1989e2cd1513e315") as Bytes;
+
 
 export function handleNamespacedDeployment(event: NamespacedDeployment): void {
+  // existing Deployment entity
   let d = new Deployment(event.params.deployed.toHexString());
   d.deployer = event.params.deployer;
   d.namespace = event.params.namespace;
@@ -16,7 +21,18 @@ export function handleNamespacedDeployment(event: NamespacedDeployment): void {
   d.txHash = event.transaction.hash;
   d.save();
 
-  if (event.params.namespace.toHexString() == SECURE_VALUE_RESERVER_NAMESPACE) {
+  // 👇 THIS IS THE MISSING PART
+  if (event.params.namespace.equals(SVR_NAMESPACE)) {
+    let svr = new SecureValueReserveInstance(
+      event.params.deployed.toHexString()
+    );
+
+    svr.namespace = event.params.namespace;
+    svr.deployer = event.params.deployer;
+    svr.createdAt = event.block.timestamp;
+    svr.txHash = event.transaction.hash;
+    svr.save(); // ← THIS creates the “SVR table row”
+
     SVRTemplate.create(event.params.deployed);
   }
 }

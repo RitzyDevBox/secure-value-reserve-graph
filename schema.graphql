@@ -76,3 +76,11 @@ type SVRSlotCancelled @entity(immutable: true) {
   selector: Bytes!
   cancelledAt: BigInt!
 }
+
+type SecureValueReserveInstance @entity(immutable: true) {
+  id: ID!              # SVR address
+  namespace: Bytes!
+  deployer: Bytes!
+  createdAt: BigInt!
+  txHash: Bytes!
+}
