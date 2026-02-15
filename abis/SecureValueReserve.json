@@ -971,8 +971,30 @@
   },
   {
     "type": "error",
-    "name": "QuotaExceeded",
-    "inputs": []
+    "name": "QuotaAmountExceeded",
+    "inputs": [
+      {
+        "name": "quota",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "quotaAferRequest",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "QuotaWindowExceeded",
+    "inputs": [
+      {
+        "name": "readyAt",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
   },
   {
     "type": "error",
