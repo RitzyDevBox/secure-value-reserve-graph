@@ -8,8 +8,7 @@ import { Deployment, Template } from "../generated/schema";
 import { Bytes } from "@graphprotocol/graph-ts";
 import { SecureValueReserveInstance } from "../generated/schema";
 
-const SVR_NAMESPACE = Bytes.fromHexString("0x53321ce7b5e878d218327e245857358529615497c25e71d44f5b48f6ecc5fde1") as Bytes;
-
+const SVR_NAMESPACE = Bytes.fromHexString("0x67e6387324ab4281578d1193a08727525866a9e7913baf234776c28044bfb556") as Bytes;
 
 export function handleNamespacedDeployment(event: NamespacedDeployment): void {
   // existing Deployment entity
