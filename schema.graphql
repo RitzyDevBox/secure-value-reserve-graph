@@ -84,3 +84,53 @@ type SecureValueReserveInstance @entity(immutable: true) {
   createdAt: BigInt!
   txHash: Bytes!
 }
+
+type DAOGovernorInstance @entity(immutable: false) {
+  id: ID!              # governor address
+  namespace: Bytes!
+  deployer: Bytes!
+  name: String
+  createdAt: BigInt!
+  txHash: Bytes!
+  proposalCount: BigInt!
+}
+
+type DAOProposal @entity(immutable: false) {
+  id: ID!              # <daoAddress>-<proposalId>
+  dao: Bytes!
+  daoEntity: DAOGovernorInstance!
+  proposalId: BigInt!
+  proposer: Bytes!
+  targets: [Bytes!]!
+  values: [BigInt!]!
+  signatures: [String!]!
+  calldatas: [Bytes!]!
+  description: String!
+  descriptionHash: Bytes!
+  voteStart: BigInt!
+  voteEnd: BigInt!
+  etaSeconds: BigInt
+  status: String!
+  createdAt: BigInt!
+  createdTxHash: Bytes!
+  queuedAt: BigInt
+  queuedTxHash: Bytes
+  executedAt: BigInt
+  executedTxHash: Bytes
+  canceledAt: BigInt
+  canceledTxHash: Bytes
+}
+
+type DAOVote @entity(immutable: true) {
+  id: ID!              # txHash-logIndex
+  dao: Bytes!
+  proposal: DAOProposal!
+  proposalId: BigInt!
+  voter: Bytes!
+  support: Int!
+  weight: BigInt!
+  reason: String
+  params: Bytes
+  createdAt: BigInt!
+  txHash: Bytes!
+}

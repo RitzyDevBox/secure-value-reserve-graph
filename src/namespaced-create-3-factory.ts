@@ -2,13 +2,21 @@ import {
   NamespacedDeployment,
   TemplateRegistered
 } from "../generated/NamespacedCreate3Factory/NamespacedCreate3Factory";
-import { SecureValueReserve as SVRTemplate } from "../generated/templates";
+import {
+  SecureValueReserve as SVRTemplate,
+  DAOGovernor as DAOGovernorTemplate
+} from "../generated/templates";
+import { DAOGovernor } from "../generated/templates/DAOGovernor/DAOGovernor";
 
 import { Deployment, Template } from "../generated/schema";
-import { Bytes } from "@graphprotocol/graph-ts";
-import { SecureValueReserveInstance } from "../generated/schema";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import {
+  SecureValueReserveInstance,
+  DAOGovernorInstance
+} from "../generated/schema";
 
 const SVR_NAMESPACE = Bytes.fromHexString("0x67e6387324ab4281578d1193a08727525866a9e7913baf234776c28044bfb556") as Bytes;
+const DAO_GOVERNOR_NAMESPACE = Bytes.fromHexString("0xa8722ea56e4b57b54714809db860d5a7b24a86540bc924542a4414293cf67492") as Bytes;
 
 export function handleNamespacedDeployment(event: NamespacedDeployment): void {
   // existing Deployment entity
@@ -33,6 +41,24 @@ export function handleNamespacedDeployment(event: NamespacedDeployment): void {
     svr.save(); // ← THIS creates the “SVR table row”
 
     SVRTemplate.create(event.params.deployed);
+  }
+
+  if (event.params.namespace.equals(DAO_GOVERNOR_NAMESPACE)) {
+    let dao = new DAOGovernorInstance(event.params.deployed.toHexString());
+    dao.namespace = event.params.namespace;
+    dao.deployer = event.params.deployer;
+    dao.createdAt = event.block.timestamp;
+    dao.txHash = event.transaction.hash;
+    dao.proposalCount = BigInt.zero();
+
+    let governor = DAOGovernor.bind(event.params.deployed);
+    let nameResult = governor.try_name();
+    if (!nameResult.reverted) {
+      dao.name = nameResult.value;
+    }
+
+    dao.save();
+    DAOGovernorTemplate.create(event.params.deployed);
   }
 }
 

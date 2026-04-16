@@ -21,6 +21,8 @@ dataSources:
       abis:
         - name: NamespacedCreate3Factory
           file: ./abis/NamespacedCreate3Factory.json
+        - name: DAOGovernor
+          file: ./abis/DAOGovernor.abi.json
       eventHandlers:
         - event: NamespacedDeployment(indexed address,indexed bytes32,uint256,address)
           handler: handleNamespacedDeployment
@@ -61,4 +63,35 @@ templates:
           handler: handleExecuteSlot
         - event: CancelEvent(indexed bytes4)
           handler: handleCancelSlot
+
+  - name: DAOGovernor
+    kind: ethereum
+    network: matic
+    source:
+      abi: DAOGovernor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/dao-governor.ts
+      entities:
+        - DAOGovernorInstance
+        - DAOProposal
+        - DAOVote
+      abis:
+        - name: DAOGovernor
+          file: ./abis/DAOGovernor.abi.json
+      eventHandlers:
+        - event: ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)
+          handler: handleProposalCreated
+        - event: ProposalCanceled(uint256)
+          handler: handleProposalCanceled
+        - event: ProposalQueued(uint256,uint256)
+          handler: handleProposalQueued
+        - event: ProposalExecuted(uint256)
+          handler: handleProposalExecuted
+        - event: VoteCast(indexed address,uint256,uint8,uint256,string)
+          handler: handleVoteCast
+        - event: VoteCastWithParams(indexed address,uint256,uint8,uint256,string,bytes)
+          handler: handleVoteCastWithParams
 
