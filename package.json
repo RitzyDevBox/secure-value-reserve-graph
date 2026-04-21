@@ -2,12 +2,16 @@
   "name": "secure-value-reserve",
   "license": "UNLICENSED",
   "scripts": {
+    "render:anvil": "node ./scripts/render-deployment.mjs --target anvil --manifest-out subgraph.local.yaml --mapping-config-out src/deployment-config.ts",
+    "render:polygon": "node ./scripts/render-deployment.mjs --target polygon --manifest-out subgraph.polygon.yaml --mapping-config-out src/deployment-config.ts",
     "codegen": "graph codegen",
+    "codegen:local": "graph codegen subgraph.local.yaml",
     "build": "graph build",
+    "build:local": "graph build subgraph.local.yaml",
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ secure-value-reserve",
     "create-local": "graph create --node http://localhost:8020/ secure-value-reserve",
     "remove-local": "graph remove --node http://localhost:8020/ secure-value-reserve",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 secure-value-reserve",
+    "deploy-local": "npm run render:anvil && graph codegen subgraph.local.yaml && graph build subgraph.local.yaml && graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 secure-value-reserve-local subgraph.local.yaml",
     "test": "graph test"
   },
   "dependencies": {

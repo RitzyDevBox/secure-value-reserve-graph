@@ -9,14 +9,12 @@ import {
 import { DAOGovernor } from "../generated/templates/DAOGovernor/DAOGovernor";
 
 import { Deployment, Template } from "../generated/schema";
-import { BigInt, Bytes } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
   SecureValueReserveInstance,
   DAOGovernorInstance
 } from "../generated/schema";
-
-const SVR_NAMESPACE = Bytes.fromHexString("0x67e6387324ab4281578d1193a08727525866a9e7913baf234776c28044bfb556") as Bytes;
-const DAO_GOVERNOR_NAMESPACE = Bytes.fromHexString("0xa8722ea56e4b57b54714809db860d5a7b24a86540bc924542a4414293cf67492") as Bytes;
+import { SVR_NAMESPACE, DAO_GOVERNOR_NAMESPACE } from "./deployment-config";
 
 export function handleNamespacedDeployment(event: NamespacedDeployment): void {
   // existing Deployment entity

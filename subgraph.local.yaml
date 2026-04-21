@@ -1,0 +1,97 @@
+specVersion: 1.3.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: NamespacedCreate3Factory
+    network: mainnet
+    source:
+      address: "0x0B230075F9b18d59854a7e2Ee13359e840195D1a"
+      abi: NamespacedCreate3Factory
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+          - Deployment
+          - Template
+      abis:
+        - name: NamespacedCreate3Factory
+          file: ./abis/NamespacedCreate3Factory.json
+        - name: DAOGovernor
+          file: ./abis/DAOGovernor.abi.json
+      eventHandlers:
+        - event: NamespacedDeployment(indexed address,indexed bytes32,uint256,address)
+          handler: handleNamespacedDeployment
+        - event: TemplateRegistered(indexed bytes32,address)
+          handler: handleTemplateRegistered
+      file: ./src/namespaced-create-3-factory.ts
+templates:
+  - name: SecureValueReserve
+    kind: ethereum
+    network: mainnet
+    source:
+      abi: SecureValueReserve
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/secure-value-reserve.ts    
+      entities:
+        - SVRPolicyProposed
+        - SVRPolicyExecuted
+        - SVRPolicyCancelled
+        - SVRSlotProposed
+        - SVRSlotExecuted
+        - SVRSlotCancelled
+      abis:
+        - name: SecureValueReserve
+          file: ./abis/SecureValueReserve.json
+      eventHandlers:
+        - event: ProposePolicyEvent(indexed bytes4,(uint8,uint8,address,uint256),(uint8,uint32,uint32,uint256),uint32)
+          handler: handleProposePolicy
+        - event: ExecutePolicyEvent(indexed bytes4,(uint8,uint8,address,uint256),(uint8,uint32,uint32,uint256))
+          handler: handleExecutePolicy
+        - event: CancelPolicyEvent(indexed bytes4,(uint8,uint8,address,uint256))
+          handler: handleCancelPolicy
+        - event: ProposeEvent(indexed bytes4,uint256,uint32)
+          handler: handleProposeSlot
+        - event: ExecuteEvent(indexed bytes4,uint256)
+          handler: handleExecuteSlot
+        - event: CancelEvent(indexed bytes4)
+          handler: handleCancelSlot
+
+  - name: DAOGovernor
+    kind: ethereum
+    network: mainnet
+    source:
+      abi: DAOGovernor
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/dao-governor.ts
+      entities:
+        - DAOGovernorInstance
+        - DAOProposal
+        - DAOVote
+      abis:
+        - name: DAOGovernor
+          file: ./abis/DAOGovernor.abi.json
+      eventHandlers:
+        - event: ProposalCreated(uint256,address,address[],uint256[],string[],bytes[],uint256,uint256,string)
+          handler: handleProposalCreated
+        - event: ProposalCanceled(uint256)
+          handler: handleProposalCanceled
+        - event: ProposalQueued(uint256,uint256)
+          handler: handleProposalQueued
+        - event: ProposalExecuted(uint256)
+          handler: handleProposalExecuted
+        - event: VoteCast(indexed address,uint256,uint8,uint256,string)
+          handler: handleVoteCast
+        - event: VoteCastWithParams(indexed address,uint256,uint8,uint256,string,bytes)
+          handler: handleVoteCastWithParams
+
