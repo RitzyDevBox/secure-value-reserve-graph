@@ -3,11 +3,11 @@
   "manifestFile": "subgraph.local.yaml",
   "mappingConfigFile": "src/deployment-config.ts",
   "manifestNetwork": "mainnet",
-  "factoryAddress": "0x0B230075F9b18d59854a7e2Ee13359e840195D1a",
+  "factoryAddress": "0x89e15De5dd9e0DA2A2cb428D832405c69824646B",
   "startBlock": 0,
   "subgraphName": "secure-value-reserve-local",
   "namespaces": {
     "svr": "0xe43bcf403ad0554479482326771a3195f03965adf8dcf7ab34da22e8ca4a7038",
-    "daoGovernor": "0xd61f311347a2d2d8af195d3773c4e2778445b9650545a5ef6fd9bd0cd07af051"
+    "daoGovernor": "0x1270ea91627abafdc80123d306ffc22cdf343e01440ea5b844767a25f34ba1fb"
   }
 }

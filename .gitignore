@@ -32,3 +32,8 @@ typechain-types
 
 # Hardhat files
 cache
+
+# Local graph-node data (do not track)
+data/
+data/ipfs/
+data/postgres/

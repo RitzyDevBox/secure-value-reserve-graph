@@ -2,14 +2,14 @@
   "target": "anvil",
   "manifestNetwork": "mainnet",
   "subgraphName": "secure-value-reserve-local",
-  "factoryAddress": "0x0B230075F9b18d59854a7e2Ee13359e840195D1a",
+  "factoryAddress": "0x89e15De5dd9e0DA2A2cb428D832405c69824646B",
   "startBlock": 0,
   "namespaces": {
     "svr": "0xe43bcf403ad0554479482326771a3195f03965adf8dcf7ab34da22e8ca4a7038",
-    "daoGovernor": "0xd61f311347a2d2d8af195d3773c4e2778445b9650545a5ef6fd9bd0cd07af051"
+    "daoGovernor": "0x1270ea91627abafdc80123d306ffc22cdf343e01440ea5b844767a25f34ba1fb"
   },
   "templateOwnerAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
   "svrTemplateName": "SVR_TEMPLATE_PROVIDER_V1",
-  "daoTemplateOwnerAddress": "0x95dBC7e66cCC00cB1F322ee92F6bCFd36Fdc5E9c",
+  "daoTemplateOwnerAddress": "0xC2309c41d61f1d9Aa1C272612BB2D15167E0cf82",
   "daoTemplateName": "DAO_GOVERNOR"
 }

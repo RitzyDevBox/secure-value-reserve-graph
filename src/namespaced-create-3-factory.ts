@@ -14,7 +14,10 @@ import {
   SecureValueReserveInstance,
   DAOGovernorInstance
 } from "../generated/schema";
-import { SVR_NAMESPACE, DAO_GOVERNOR_NAMESPACE } from "./deployment-config";
+import {
+  SVR_NAMESPACE,
+  DAO_GOVERNOR_NAMESPACE
+} from "./deployment-config";
 
 export function handleNamespacedDeployment(event: NamespacedDeployment): void {
   // existing Deployment entity
@@ -49,6 +52,10 @@ export function handleNamespacedDeployment(event: NamespacedDeployment): void {
     dao.txHash = event.transaction.hash;
     dao.proposalCount = BigInt.zero();
 
+    // Only resolve name() for DAO namespace deployments. The namespaced factory
+    // can deploy many template types, so this call must stay scoped to the DAO
+    // namespace. We use `try_name()` because Graph mappings do not support
+    // exception handling and this keeps the call best-effort for EVM reverts.
     let governor = DAOGovernor.bind(event.params.deployed);
     let nameResult = governor.try_name();
     if (!nameResult.reverted) {
