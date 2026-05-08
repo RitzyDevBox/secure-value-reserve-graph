@@ -134,3 +134,129 @@ type DAOVote @entity(immutable: true) {
   createdAt: BigInt!
   txHash: Bytes!
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MultiTenantAuth (MTA) — singleton per chain. All orgs share one instance;
+# every entity is keyed by a per-org "slug" (bytes32). Mappings live in
+# src/multi-tenant-auth.ts. See BareBonesDiamond/docs/multi-tenant-auth-roles.md
+# for the auth model. We index the events that establish stable on-chain state
+# (members, roles, permissions, org-contract registry, slug pause/lock state)
+# and defer the high-frequency / read-mostly streams (rate-limit state,
+# `Executed`, target-grant cache, public-sig flags).
+# ─────────────────────────────────────────────────────────────────────────────
+
+enum SlugStateEnum {
+  Normal
+  Paused
+  Locked
+}
+
+# One row per bootstrapped org. Created from `Bootstrapped`; mutated by
+# pause/unpause/lock/unlock and `SuperAdminTransferred`.
+type SlugConfig @entity(immutable: false) {
+  id: ID!                             # slug.toHexString()
+  slug: Bytes!
+  superAdmin: Bytes
+  fallbackAuthorizer: Bytes
+  state: SlugStateEnum!
+  bootstrapped: Boolean!
+  bootstrapTime: BigInt
+  initialAdmins: [Bytes!]
+}
+
+# One row per (slug, wallet). `role` mirrors the latest active assignment for
+# fast UI lookups; the historical trail lives in RoleAssignment.
+type Member @entity(immutable: false) {
+  id: ID!                             # slug-wallet
+  slug: Bytes!
+  wallet: Bytes!
+  nameSlug: Bytes
+  accountType: Int                    # AccountType enum: 0=Member, 1=Investor, 2=Contractor
+  status: Int                         # MemberStatus enum: 0=Active, 1=OnLeave, 2=Terminated, 3=Invited, 4=Suspended
+  role: Bytes                         # current roleSlug; null when revoked / removed
+  dateAdded: BigInt!
+  removedAt: BigInt
+}
+
+# One row per (slug, roleSlug). System roles (Admin, Pauser, etc.) are
+# synthesized — they never get RoleCreated events. We mark them via
+# `isSystemRole` when we encounter assignments referencing them.
+type Role @entity(immutable: false) {
+  id: ID!                             # slug-roleSlug
+  slug: Bytes!
+  roleSlug: Bytes!
+  appliesTo: Int                      # bitmask: Member|Investor|Contractor
+  isDefault: Boolean
+  isCustom: Boolean!
+  isSystemRole: Boolean!
+  createdAt: BigInt
+  deletedAt: BigInt
+}
+
+# One row per (slug, wallet, roleSlug) assignment. Append-only history; the
+# active-assignment pointer lives on `Member.role`.
+type RoleAssignment @entity(immutable: false) {
+  id: ID!                             # slug-wallet-roleSlug
+  slug: Bytes!
+  wallet: Bytes!
+  roleSlug: Bytes!
+  grantedAt: BigInt!
+  revokedAt: BigInt
+}
+
+# One row per (slug, role, target, sig). The `PermissionSet` event only carries
+# the keys; mode/customAuthorizer/validity/constraints/rate-limit details are
+# stored on-chain in PermissionsContract storage and are NOT in the event.
+# Those fields are nullable and reserved for a future cross-event reconciler
+# (see deferred work in mappings).
+type Permission @entity(immutable: false) {
+  id: ID!                             # slug-role-target-sig
+  slug: Bytes!
+  role: Bytes!
+  target: Bytes!
+  sig: Bytes!
+  mode: Int                           # PermissionMode enum: 0=Whitelist, 1=Blacklist, 2=Custom
+  customAuthorizer: Bytes
+  validFrom: BigInt
+  validUntil: BigInt
+  hasConstraints: Boolean
+  constraints: Bytes
+  rateMaxCalls: BigInt                # mirrored from RateLimitSet
+  rateWindowSeconds: BigInt           # mirrored from RateLimitSet
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  deletedAt: BigInt
+}
+
+# One row per (slug, role, target). Updated by TargetGrantSet/Cleared.
+type TargetGrant @entity(immutable: false) {
+  id: ID!                             # slug-role-target
+  slug: Bytes!
+  role: Bytes!
+  target: Bytes!
+  mode: Int!                          # TargetMode enum
+  customAddr: Bytes
+  updatedAt: BigInt!
+  clearedAt: BigInt
+}
+
+# One row per (slug, target, sig).
+type PublicSig @entity(immutable: false) {
+  id: ID!                             # slug-target-sig
+  slug: Bytes!
+  target: Bytes!
+  sig: Bytes!
+  isPublic: Boolean!
+  updatedAt: BigInt!
+}
+
+# One row per registered or foundation contract. Foundation rows are
+# created at MTA constructor time (slug = zero bytes32).
+type OrgContract @entity(immutable: false) {
+  id: ID!                             # target address
+  slug: Bytes                         # null for foundation rows
+  target: Bytes!
+  registeredAt: BigInt
+  unregisteredAt: BigInt
+  isFoundation: Boolean!
+}

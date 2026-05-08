@@ -44,16 +44,37 @@ required(resolved.manifestNetwork, "manifestNetwork is required in deployment co
 required(resolved.factoryAddress, "factoryAddress is required in deployment config");
 required(resolved.namespaces?.svr, "namespaces.svr is required in deployment config");
 required(resolved.namespaces?.daoGovernor, "namespaces.daoGovernor is required in deployment config");
+required(resolved.multiTenantAuthAddress, "multiTenantAuthAddress is required in deployment config");
+
+const mtaStartBlock =
+  resolved.mtaStartBlock !== undefined && resolved.mtaStartBlock !== null
+    ? Number(resolved.mtaStartBlock)
+    : Number(resolved.startBlock);
 
 const templateManifestPath = path.join(cwd, "subgraph.yaml");
 let manifest = fs.readFileSync(templateManifestPath, "utf8");
 
 manifest = manifest.replace(/network:\s*[A-Za-z0-9_\-]+/g, `network: ${resolved.manifestNetwork}`);
-manifest = manifest.replace(
-  /address:\s*"0x[a-fA-F0-9]{40}"/,
-  `address: "${resolved.factoryAddress}"`
-);
-manifest = manifest.replace(/startBlock:\s*\d+/, `startBlock: ${resolved.startBlock}`);
+
+// Per-data-source address+startBlock stamping. Each data source block in
+// subgraph.yaml is identified by its `name:` line; we rewrite the immediately
+// following `address:` and `startBlock:` lines (the `source:` stanza) for that
+// block. Avoids the original single-replace regex that only patched the first
+// match — necessary now that we have multiple non-templated data sources
+// (NamespacedCreate3Factory + MultiTenantAuth).
+function stampDataSource(yaml, name, address, startBlock) {
+  const re = new RegExp(
+    `(name:\\s*${name}\\b[\\s\\S]*?address:\\s*)"0x[a-fA-F0-9]{40}"([\\s\\S]*?startBlock:\\s*)\\d+`,
+    "m",
+  );
+  if (!re.test(yaml)) {
+    throw new Error(`Could not locate data source '${name}' in subgraph.yaml`);
+  }
+  return yaml.replace(re, `$1"${address}"$2${startBlock}`);
+}
+
+manifest = stampDataSource(manifest, "NamespacedCreate3Factory", resolved.factoryAddress, resolved.startBlock);
+manifest = stampDataSource(manifest, "MultiTenantAuth", resolved.multiTenantAuthAddress, mtaStartBlock);
 
 fs.writeFileSync(path.join(cwd, manifestOut), manifest);
 
@@ -72,6 +93,8 @@ const resolvedOut = {
   manifestNetwork: resolved.manifestNetwork,
   factoryAddress: resolved.factoryAddress,
   startBlock: resolved.startBlock,
+  multiTenantAuthAddress: resolved.multiTenantAuthAddress,
+  mtaStartBlock,
   subgraphName: resolved.subgraphName,
   namespaces: resolved.namespaces,
 };

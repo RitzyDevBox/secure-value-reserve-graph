@@ -1,11 +1,13 @@
 {
-  "target": "staging",
-  "manifestFile": "subgraph.staging.yaml",
+  "target": "anvil",
+  "manifestFile": "subgraph.local.yaml",
   "mappingConfigFile": "src/deployment-config.ts",
   "manifestNetwork": "mainnet",
   "factoryAddress": "0x89e15De5dd9e0DA2A2cb428D832405c69824646B",
   "startBlock": 0,
-  "subgraphName": "secure-value-reserve-staging",
+  "multiTenantAuthAddress": "0x233DA861A4635D459bEDA634F154C37dA4bD9BC3",
+  "mtaStartBlock": 0,
+  "subgraphName": "secure-value-reserve-local",
   "namespaces": {
     "svr": "0xe43bcf403ad0554479482326771a3195f03965adf8dcf7ab34da22e8ca4a7038",
     "daoGovernor": "0x1270ea91627abafdc80123d306ffc22cdf343e01440ea5b844767a25f34ba1fb"
