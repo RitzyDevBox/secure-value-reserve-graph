@@ -204,15 +204,17 @@ type RoleAssignment @entity(immutable: false) {
   revokedAt: BigInt
 }
 
-# One row per (slug, role, target, sig). The `PermissionSet` event only carries
-# the keys; mode/customAuthorizer/validity/constraints/rate-limit details are
-# stored on-chain in PermissionsContract storage and are NOT in the event.
-# Those fields are nullable and reserved for a future cross-event reconciler
-# (see deferred work in mappings).
+# One row per (slug, permId). Permissions are now first-class slug-scoped
+# entities — they exist independently of any role and can be attached to many
+# roles via the RolePermission junction below. The `PermissionCreated` event
+# carries (slug, permId, target, sig); other spec fields (mode, validity,
+# rate limit) need a future cross-event reconciler reading the contract or
+# decoding the originating calldata. `RateLimitSet` mirrors rate fields when
+# they're set.
 type Permission @entity(immutable: false) {
-  id: ID!                             # slug-role-target-sig
+  id: ID!                             # slug-permId
   slug: Bytes!
-  role: Bytes!
+  permId: BigInt!
   target: Bytes!
   sig: Bytes!
   mode: Int                           # PermissionMode enum: 0=Whitelist, 1=Blacklist, 2=Custom
@@ -226,6 +228,18 @@ type Permission @entity(immutable: false) {
   createdAt: BigInt!
   updatedAt: BigInt!
   deletedAt: BigInt
+}
+
+# Junction between Role and Permission. One row per (slug, role, permId)
+# attachment. Created on PermissionAttached; soft-deleted on PermissionDetached
+# / PermissionDeleted via `detachedAt` so the historical trail is preserved.
+type RolePermission @entity(immutable: false) {
+  id: ID!                             # slug-role-permId
+  slug: Bytes!
+  roleSlug: Bytes!
+  permId: BigInt!
+  attachedAt: BigInt!
+  detachedAt: BigInt
 }
 
 # One row per (slug, role, target). Updated by TargetGrantSet/Cleared.

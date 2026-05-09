@@ -49,6 +49,7 @@ dataSources:
         - Role
         - RoleAssignment
         - Permission
+        - RolePermission
         - TargetGrant
         - PublicSig
         - OrgContract
@@ -96,17 +97,23 @@ dataSources:
           handler: handleRoleUpdated
         - event: RoleDeleted(indexed bytes32,indexed bytes32)
           handler: handleRoleDeleted
-        - event: PermissionSet(indexed bytes32,indexed bytes32,indexed address,bytes4)
-          handler: handlePermissionSet
-        - event: PermissionCleared(indexed bytes32,indexed bytes32,indexed address,bytes4)
-          handler: handlePermissionCleared
+        - event: PermissionCreated(indexed bytes32,indexed uint256,indexed address,bytes4)
+          handler: handlePermissionCreated
+        - event: PermissionUpdated(indexed bytes32,indexed uint256)
+          handler: handlePermissionUpdated
+        - event: PermissionDeleted(indexed bytes32,indexed uint256)
+          handler: handlePermissionDeleted
+        - event: PermissionAttached(indexed bytes32,indexed bytes32,indexed uint256)
+          handler: handlePermissionAttached
+        - event: PermissionDetached(indexed bytes32,indexed bytes32,indexed uint256)
+          handler: handlePermissionDetached
         - event: TargetGrantSet(indexed bytes32,indexed bytes32,indexed address,uint8,address)
           handler: handleTargetGrantSet
         - event: TargetGrantCleared(indexed bytes32,indexed bytes32,indexed address)
           handler: handleTargetGrantCleared
         - event: PublicSigSet(indexed bytes32,indexed address,bytes4,bool)
           handler: handlePublicSigSet
-        - event: RateLimitSet(indexed bytes32,indexed bytes32,indexed address,bytes4,uint32,uint32)
+        - event: RateLimitSet(indexed bytes32,indexed uint256,uint32,uint32)
           handler: handleRateLimitSet
       file: ./src/multi-tenant-auth.ts
 templates:

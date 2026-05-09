@@ -31,8 +31,11 @@ import {
   RoleCreated,
   RoleUpdated,
   RoleDeleted,
-  PermissionSet,
-  PermissionCleared,
+  PermissionCreated,
+  PermissionUpdated,
+  PermissionDeleted,
+  PermissionAttached,
+  PermissionDetached,
   TargetGrantSet,
   TargetGrantCleared,
   PublicSigSet,
@@ -45,6 +48,7 @@ import {
   Role,
   RoleAssignment,
   Permission,
+  RolePermission,
   TargetGrant,
   PublicSig,
   OrgContract,
@@ -70,8 +74,12 @@ function roleAssignmentId(slug: Bytes, wallet: Address, roleSlug: Bytes): string
   return slug.toHexString() + "-" + wallet.toHexString() + "-" + roleSlug.toHexString();
 }
 
-function permissionId(slug: Bytes, role: Bytes, target: Address, sig: Bytes): string {
-  return slug.toHexString() + "-" + role.toHexString() + "-" + target.toHexString() + "-" + sig.toHexString();
+function permissionId(slug: Bytes, permId: BigInt): string {
+  return slug.toHexString() + "-" + permId.toString();
+}
+
+function rolePermissionId(slug: Bytes, roleSlug: Bytes, permId: BigInt): string {
+  return slug.toHexString() + "-" + roleSlug.toHexString() + "-" + permId.toString();
 }
 
 function targetGrantId(slug: Bytes, role: Bytes, target: Address): string {
@@ -390,56 +398,96 @@ export function handleRoleDeleted(event: RoleDeleted): void {
 }
 
 // ─── Permissions ─────────────────────────────────────────────────────────────
+//
+// Permissions are slug-scoped first-class entities (no role component). The
+// `Permission` row is keyed by (slug, permId). Role membership lives in the
+// `RolePermission` junction, written by the Attached/Detached handlers.
 
-export function handlePermissionSet(event: PermissionSet): void {
-  let id = permissionId(event.params.slug, event.params.roleSlug, event.params.target, event.params.sig);
+export function handlePermissionCreated(event: PermissionCreated): void {
+  let id = permissionId(event.params.slug, event.params.permId);
   let p = Permission.load(id);
   if (p == null) {
     p = new Permission(id);
     p.slug = event.params.slug;
-    p.role = event.params.roleSlug;
+    p.permId = event.params.permId;
     p.sig = event.params.sig;
     p.createdAt = event.block.timestamp;
   }
-  // target (Address) → p.target (Bytes) — kept outside the if-null branch.
+  // target (Address) → p.target (Bytes) — kept outside the if-null branch
+  // to sidestep the AssemblyScript compileBinaryOverload assertion (see
+  // skills/graph-indexing/SKILL.md).
   p.target = event.params.target;
-  // mode / customAuthorizer / validity / constraints / rate-limit fields are
-  // NOT carried on PermissionSet — see "Deferred" notes. Rate-limit details
-  // arrive separately via RateLimitSet (fired in the same tx) and are merged
-  // there. The remaining fields require a contract read (PermissionsContract
-  // does not expose a getter today) and stay null until that's added.
+  // mode / customAuthorizer / validity / constraints fields are NOT carried
+  // on PermissionCreated — they require a future cross-event reconciler.
+  // Rate-limit details DO arrive via the same-tx RateLimitSet event and are
+  // merged in handleRateLimitSet.
   p.updatedAt = event.block.timestamp;
   p.deletedAt = null;
   p.save();
 }
 
-export function handlePermissionCleared(event: PermissionCleared): void {
-  let id = permissionId(event.params.slug, event.params.roleSlug, event.params.target, event.params.sig);
+export function handlePermissionUpdated(event: PermissionUpdated): void {
+  let id = permissionId(event.params.slug, event.params.permId);
+  let p = Permission.load(id);
+  if (p == null) return;
+  // Spec fields aren't on the event — bump updatedAt and clear any prior
+  // soft-delete; the reconciler will fill in mode/validity/etc. later.
+  p.updatedAt = event.block.timestamp;
+  p.deletedAt = null;
+  p.save();
+}
+
+export function handlePermissionDeleted(event: PermissionDeleted): void {
+  let id = permissionId(event.params.slug, event.params.permId);
   let p = Permission.load(id);
   if (p == null) return;
   p.deletedAt = event.block.timestamp;
   p.updatedAt = event.block.timestamp;
   p.save();
+  // The contract cascade-detaches before deleting; PermissionDetached events
+  // fire alongside for each role and are handled by handlePermissionDetached,
+  // so we don't need to enumerate junction rows here.
+}
+
+export function handlePermissionAttached(event: PermissionAttached): void {
+  let id = rolePermissionId(event.params.slug, event.params.roleSlug, event.params.permId);
+  let rp = RolePermission.load(id);
+  if (rp == null) {
+    rp = new RolePermission(id);
+    rp.slug = event.params.slug;
+    rp.permId = event.params.permId;
+    rp.attachedAt = event.block.timestamp;
+  } else {
+    // Re-attach after a prior detach: refresh attachedAt + clear detachedAt.
+    rp.attachedAt = event.block.timestamp;
+    rp.detachedAt = null;
+  }
+  rp.roleSlug = event.params.roleSlug;
+  rp.save();
+}
+
+export function handlePermissionDetached(event: PermissionDetached): void {
+  let id = rolePermissionId(event.params.slug, event.params.roleSlug, event.params.permId);
+  let rp = RolePermission.load(id);
+  if (rp == null) return;
+  rp.detachedAt = event.block.timestamp;
+  rp.save();
 }
 
 export function handleRateLimitSet(event: RateLimitSet): void {
-  // RateLimitSet always fires in the same tx as a preceding PermissionSet for
-  // the same key — merge into the existing Permission row when present so the
-  // UI can read rate config without a separate join.
-  let id = permissionId(event.params.slug, event.params.roleSlug, event.params.target, event.params.sig);
+  // RateLimitSet fires in the same tx as a preceding PermissionCreated /
+  // PermissionUpdated for the same permId — merge into the existing
+  // Permission row so the UI can read rate config without a separate join.
+  let id = permissionId(event.params.slug, event.params.permId);
   let p = Permission.load(id);
   if (p == null) {
     // Defensive: if start-block ordering split the two events, materialize a
-    // sparse Permission row. createdAt becomes the rate-limit timestamp; the
-    // future reconciler can backfill from PermissionSet logs.
+    // sparse Permission row. createdAt becomes the rate-limit timestamp.
     p = new Permission(id);
     p.slug = event.params.slug;
-    p.role = event.params.roleSlug;
-    p.sig = event.params.sig;
+    p.permId = event.params.permId;
     p.createdAt = event.block.timestamp;
   }
-  // target (Address) → p.target (Bytes) — kept outside the if-null branch.
-  p.target = event.params.target;
   // graph-cli maps uint32 → BigInt for event params (see generated bindings).
   p.rateMaxCalls = event.params.maxCalls;
   p.rateWindowSeconds = event.params.windowSeconds;

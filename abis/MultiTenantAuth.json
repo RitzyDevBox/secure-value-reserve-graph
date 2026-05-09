@@ -16,6 +16,16 @@
         "name": "foundations",
         "type": "address[]",
         "internalType": "address[]"
+      },
+      {
+        "name": "payrollManager_",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "treasury_",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "nonpayable"
@@ -162,6 +172,29 @@
   },
   {
     "type": "function",
+    "name": "attachPermissionsToRole",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "roleSlug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "permIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "bootstrap",
     "inputs": [
       {
@@ -175,9 +208,26 @@
         "internalType": "address"
       },
       {
+        "name": "superAdminNameSlug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
         "name": "initialAdmins",
-        "type": "address[]",
-        "internalType": "address[]"
+        "type": "tuple[]",
+        "internalType": "struct MultiTenantAuth.BootstrapAdmin[]",
+        "components": [
+          {
+            "name": "wallet",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "nameSlug",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
       }
     ],
     "outputs": [],
@@ -295,10 +345,15 @@
   },
   {
     "type": "function",
-    "name": "createPermissions",
+    "name": "createAndAttachPermissions",
     "inputs": [
       {
         "name": "slug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "roleSlug",
         "type": "bytes32",
         "internalType": "bytes32"
       },
@@ -307,11 +362,6 @@
         "type": "tuple[]",
         "internalType": "struct PermissionsContract.PermissionInput[]",
         "components": [
-          {
-            "name": "roleSlug",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
           {
             "name": "target",
             "type": "address",
@@ -382,7 +432,106 @@
         ]
       }
     ],
-    "outputs": [],
+    "outputs": [
+      {
+        "name": "ids",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "createPermissions",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "perms",
+        "type": "tuple[]",
+        "internalType": "struct PermissionsContract.PermissionInput[]",
+        "components": [
+          {
+            "name": "target",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "sig",
+            "type": "bytes4",
+            "internalType": "bytes4"
+          },
+          {
+            "name": "mode",
+            "type": "uint8",
+            "internalType": "enum PermissionsContract.PermissionMode"
+          },
+          {
+            "name": "customAuthorizer",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "validFrom",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "validUntil",
+            "type": "uint64",
+            "internalType": "uint64"
+          },
+          {
+            "name": "options",
+            "type": "bytes",
+            "internalType": "bytes"
+          },
+          {
+            "name": "sig_",
+            "type": "tuple",
+            "internalType": "struct PermissionsContract.SigRequirement",
+            "components": [
+              {
+                "name": "sigType",
+                "type": "uint8",
+                "internalType": "enum PermissionsContract.SigType"
+              },
+              {
+                "name": "threshold",
+                "type": "uint8",
+                "internalType": "uint8"
+              },
+              {
+                "name": "outOf",
+                "type": "uint8",
+                "internalType": "uint8"
+              }
+            ]
+          },
+          {
+            "name": "rateMaxCalls",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "rateWindowSeconds",
+            "type": "uint32",
+            "internalType": "uint32"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
     "stateMutability": "nonpayable"
   },
   {
@@ -473,19 +622,9 @@
         "internalType": "bytes32"
       },
       {
-        "name": "roleSlugs_",
-        "type": "bytes32[]",
-        "internalType": "bytes32[]"
-      },
-      {
-        "name": "targets",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "sigs",
-        "type": "bytes4[]",
-        "internalType": "bytes4[]"
+        "name": "permIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
     "outputs": [],
@@ -504,6 +643,29 @@
         "name": "roleSlugs_",
         "type": "bytes32[]",
         "internalType": "bytes32[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "detachPermissionsFromRole",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "roleSlug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "permIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
     "outputs": [],
@@ -614,18 +776,8 @@
       },
       {
         "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "",
-        "type": "bytes4",
-        "internalType": "bytes4"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
@@ -934,6 +1086,25 @@
   },
   {
     "type": "function",
+    "name": "nextPermissionId",
+    "inputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "onboardMembers",
     "inputs": [
       {
@@ -987,6 +1158,19 @@
   },
   {
     "type": "function",
+    "name": "payrollManagerFoundation",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "pendingClaim",
     "inputs": [
       {
@@ -1015,18 +1199,8 @@
       },
       {
         "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "",
-        "type": "bytes4",
-        "internalType": "bytes4"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
@@ -1034,6 +1208,59 @@
         "name": "",
         "type": "bytes",
         "internalType": "bytes"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "permissionRoleSlugs",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "permId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32[]",
+        "internalType": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "permissionTargets",
+    "inputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "target",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "sig",
+        "type": "bytes4",
+        "internalType": "bytes4"
       }
     ],
     "stateMutability": "view"
@@ -1132,18 +1359,8 @@
       },
       {
         "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "",
-        "type": "bytes4",
-        "internalType": "bytes4"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
@@ -1338,7 +1555,41 @@
   },
   {
     "type": "function",
-    "name": "rolePermKeys",
+    "name": "rolePermLookup",
+    "inputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "bytes4",
+        "internalType": "bytes4"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "rolePermissionIds",
     "inputs": [
       {
         "name": "slug",
@@ -1354,8 +1605,8 @@
     "outputs": [
       {
         "name": "",
-        "type": "bytes32[]",
-        "internalType": "bytes32[]"
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
     "stateMutability": "view"
@@ -1546,18 +1797,8 @@
       },
       {
         "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "",
-        "type": "bytes4",
-        "internalType": "bytes4"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
@@ -1697,6 +1938,19 @@
   },
   {
     "type": "function",
+    "name": "treasuryFoundation",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "unlockSlug",
     "inputs": [
       {
@@ -1707,30 +1961,6 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "unpackPermKey",
-    "inputs": [
-      {
-        "name": "key",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "target",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "sig",
-        "type": "bytes4",
-        "internalType": "bytes4"
-      }
-    ],
-    "stateMutability": "pure"
   },
   {
     "type": "function",
@@ -1778,15 +2008,15 @@
         "internalType": "bytes32"
       },
       {
+        "name": "permIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
         "name": "perms",
         "type": "tuple[]",
         "internalType": "struct PermissionsContract.PermissionInput[]",
         "components": [
-          {
-            "name": "roleSlug",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          },
           {
             "name": "target",
             "type": "address",
@@ -1935,18 +2165,8 @@
       },
       {
         "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "",
-        "type": "bytes4",
-        "internalType": "bytes4"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
@@ -2317,7 +2537,7 @@
   },
   {
     "type": "event",
-    "name": "PermissionCleared",
+    "name": "PermissionAttached",
     "inputs": [
       {
         "name": "slug",
@@ -2330,6 +2550,31 @@
         "type": "bytes32",
         "indexed": true,
         "internalType": "bytes32"
+      },
+      {
+        "name": "permId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PermissionCreated",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "permId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
         "name": "target",
@@ -2348,7 +2593,26 @@
   },
   {
     "type": "event",
-    "name": "PermissionSet",
+    "name": "PermissionDeleted",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "permId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PermissionDetached",
     "inputs": [
       {
         "name": "slug",
@@ -2363,16 +2627,29 @@
         "internalType": "bytes32"
       },
       {
-        "name": "target",
-        "type": "address",
+        "name": "permId",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "address"
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PermissionUpdated",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
       },
       {
-        "name": "sig",
-        "type": "bytes4",
-        "indexed": false,
-        "internalType": "bytes4"
+        "name": "permId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -2419,22 +2696,10 @@
         "internalType": "bytes32"
       },
       {
-        "name": "roleSlug",
-        "type": "bytes32",
+        "name": "permId",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "bytes32"
-      },
-      {
-        "name": "target",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "sig",
-        "type": "bytes4",
-        "indexed": false,
-        "internalType": "bytes4"
+        "internalType": "uint256"
       },
       {
         "name": "maxCalls",
@@ -2896,6 +3161,11 @@
   },
   {
     "type": "error",
+    "name": "InvalidPermissionTarget",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidRateConfig",
     "inputs": []
   },
@@ -2991,6 +3261,11 @@
   },
   {
     "type": "error",
+    "name": "PermissionNotFound",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "RateLimitExceeded",
     "inputs": []
   },
@@ -3002,6 +3277,11 @@
   {
     "type": "error",
     "name": "RoleAlreadyExists",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "RoleAlreadyHasPermissionForTarget",
     "inputs": []
   },
   {
