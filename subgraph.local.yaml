@@ -57,9 +57,9 @@ dataSources:
         - name: MultiTenantAuth
           file: ./abis/MultiTenantAuth.json
       eventHandlers:
-        - event: Bootstrapped(indexed bytes32,indexed address,address[])
+        - event: Bootstrapped(indexed bytes32,indexed uint256,address,address[])
           handler: handleBootstrapped
-        - event: SuperAdminTransferred(indexed bytes32,indexed address,indexed address)
+        - event: SuperAdminTransferred(indexed bytes32,indexed uint256,indexed uint256)
           handler: handleSuperAdminTransferred
         - event: SlugPaused(indexed bytes32,indexed address)
           handler: handleSlugPaused
@@ -77,19 +77,21 @@ dataSources:
           handler: handleOrgContractRegistered
         - event: OrgContractUnregistered(indexed bytes32,indexed address,indexed address)
           handler: handleOrgContractUnregistered
-        - event: MemberOnboarded(indexed bytes32,indexed address,indexed bytes32,uint8)
+        - event: MemberOnboarded(indexed bytes32,indexed uint256,indexed address,bytes32,uint8)
           handler: handleMemberOnboarded
-        - event: MemberAccountTypeSet(indexed bytes32,indexed address,uint8)
+        - event: MemberAccountTypeSet(indexed bytes32,indexed uint256,uint8)
           handler: handleMemberAccountTypeSet
-        - event: MemberStatusSet(indexed bytes32,indexed address,uint8)
+        - event: MemberStatusSet(indexed bytes32,indexed uint256,uint8)
           handler: handleMemberStatusSet
-        - event: MemberNameSlugSet(indexed bytes32,indexed address,bytes32,bytes32)
+        - event: MemberNameSlugSet(indexed bytes32,indexed uint256,bytes32,bytes32)
           handler: handleMemberNameSlugSet
-        - event: MemberRemoved(indexed bytes32,indexed address)
+        - event: MemberRemoved(indexed bytes32,indexed uint256,address)
           handler: handleMemberRemoved
-        - event: RoleAssigned(indexed bytes32,indexed address,indexed bytes32)
+        - event: WalletRotated(indexed bytes32,indexed uint256,indexed address,address)
+          handler: handleWalletRotated
+        - event: RoleAssigned(indexed bytes32,indexed uint256,indexed bytes32,address)
           handler: handleRoleAssigned
-        - event: RoleRevoked(indexed bytes32,indexed address,indexed bytes32)
+        - event: RoleRevoked(indexed bytes32,indexed uint256,indexed bytes32,address)
           handler: handleRoleRevoked
         - event: RoleCreated(indexed bytes32,indexed bytes32,uint8,bool)
           handler: handleRoleCreated

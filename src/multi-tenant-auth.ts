@@ -7,8 +7,11 @@
 // handled; see the "Deferred" section near the bottom for skeleton stubs and
 // rationale.
 //
-// All entity ids use lowercase hex with the `0x` prefix to match the
-// conventions of dao-governor.ts / namespaced-create-3-factory.ts.
+// Identity model: every member-touching event carries the global `memberId`
+// (uint256). Entities key on memberId — not on (slug, wallet) — so the audit
+// trail survives wallet rotations. The Member.wallet field tracks the *current*
+// wallet and is refreshed by handleWalletRotated; historical wallet snapshots
+// land in the WalletRotation entity.
 
 import {
   Bootstrapped,
@@ -26,6 +29,7 @@ import {
   MemberStatusSet,
   MemberNameSlugSet,
   MemberRemoved,
+  WalletRotated,
   RoleAssigned,
   RoleRevoked,
   RoleCreated,
@@ -52,6 +56,7 @@ import {
   TargetGrant,
   PublicSig,
   OrgContract,
+  WalletRotation,
 } from "../generated/schema";
 
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
@@ -62,16 +67,16 @@ function slugId(slug: Bytes): string {
   return slug.toHexString();
 }
 
-function memberId(slug: Bytes, wallet: Address): string {
-  return slug.toHexString() + "-" + wallet.toHexString();
+function memberEntityId(memberId: BigInt): string {
+  return memberId.toString();
 }
 
 function roleId(slug: Bytes, roleSlug: Bytes): string {
   return slug.toHexString() + "-" + roleSlug.toHexString();
 }
 
-function roleAssignmentId(slug: Bytes, wallet: Address, roleSlug: Bytes): string {
-  return slug.toHexString() + "-" + wallet.toHexString() + "-" + roleSlug.toHexString();
+function roleAssignmentId(memberId: BigInt, roleSlug: Bytes): string {
+  return memberId.toString() + "-" + roleSlug.toHexString();
 }
 
 function permissionId(slug: Bytes, permId: BigInt): string {
@@ -88,6 +93,10 @@ function targetGrantId(slug: Bytes, role: Bytes, target: Address): string {
 
 function publicSigId(slug: Bytes, target: Address, sig: Bytes): string {
   return slug.toHexString() + "-" + target.toHexString() + "-" + sig.toHexString();
+}
+
+function walletRotationId(txHash: Bytes, logIndex: BigInt): string {
+  return txHash.toHexString() + "-" + logIndex.toString();
 }
 
 // System-role detection. MTA never emits RoleCreated for these — they're
@@ -143,6 +152,7 @@ function ensureSlugConfig(slug: Bytes): SlugConfig {
 
 export function handleBootstrapped(event: Bootstrapped): void {
   let cfg = ensureSlugConfig(event.params.slug);
+  cfg.superAdminId = event.params.superAdminId;
   cfg.superAdmin = event.params.superAdmin;
   cfg.bootstrapped = true;
   cfg.bootstrapTime = event.block.timestamp;
@@ -159,7 +169,13 @@ export function handleBootstrapped(event: Bootstrapped): void {
 
 export function handleSuperAdminTransferred(event: SuperAdminTransferred): void {
   let cfg = ensureSlugConfig(event.params.slug);
-  cfg.superAdmin = event.params.current;
+  cfg.superAdminId = event.params.currentId;
+  // Look up the new super admin's current wallet from the Member entity so
+  // the wallet snapshot stays in sync.
+  let newSa = Member.load(memberEntityId(event.params.currentId));
+  if (newSa != null) {
+    cfg.superAdmin = newSa.wallet;
+  }
   cfg.save();
 }
 
@@ -242,71 +258,109 @@ export function handleOrgContractUnregistered(event: OrgContractUnregistered): v
 }
 
 // ─── Members ─────────────────────────────────────────────────────────────────
+//
+// Identity is the contract's `memberId` (BigInt). Entities key on it; the
+// wallet field is mutable and refreshed by handleWalletRotated.
 
-function ensureMember(slug: Bytes, wallet: Address, blockTime: BigInt): Member {
-  let id = memberId(slug, wallet);
-  let m = Member.load(id);
-  if (m == null) {
-    m = new Member(id);
-    m.slug = slug;
-    m.dateAdded = blockTime;
-  }
-  // wallet (Address) → m.wallet (Bytes) — kept outside if-null branch.
-  m.wallet = wallet;
-  return m as Member;
+function loadMemberById(memberId: BigInt): Member | null {
+  return Member.load(memberEntityId(memberId));
 }
 
 export function handleMemberOnboarded(event: MemberOnboarded): void {
-  let m = ensureMember(event.params.slug, event.params.wallet, event.block.timestamp);
+  let id = memberEntityId(event.params.memberId);
+  let m = Member.load(id);
+  if (m == null) {
+    m = new Member(id);
+    m.memberId = event.params.memberId;
+    m.slug = event.params.slug;
+    m.dateAdded = event.block.timestamp;
+  }
+  // wallet (Address) → m.wallet (Bytes) — kept outside the if-null branch to
+  // sidestep an AssemblyScript compileBinaryOverload assertion seen on
+  // Address→Bytes assignment paired with other writes in the same branch.
+  m.wallet = event.params.wallet;
   m.nameSlug = event.params.nameSlug;
   m.accountType = event.params.accountType;
-  // MembersContract.sol seeds new members at MemberStatus.Invited (=3). A
-  // MemberStatusSet may arrive in the same tx and overwrite; that's fine.
-  // We initialize unconditionally so re-onboards (after a removal) reset the
-  // status alongside dateAdded.
-  m.status = 3; // MemberStatus.Invited
+  // Contract seeds new members at MemberStatus.Active (=0). RoleAssigned may
+  // arrive in the same tx (when MemberInit.roleSlug is non-zero) and update
+  // m.role; that handler doesn't touch status so the Active default holds.
+  m.status = 0; // MemberStatus.Active
   m.removedAt = null;
   m.save();
 }
 
 export function handleMemberAccountTypeSet(event: MemberAccountTypeSet): void {
-  let m = ensureMember(event.params.slug, event.params.wallet, event.block.timestamp);
+  let m = loadMemberById(event.params.memberId);
+  if (m == null) return;
   m.accountType = event.params.accountType;
   m.save();
 }
 
 export function handleMemberStatusSet(event: MemberStatusSet): void {
-  let m = ensureMember(event.params.slug, event.params.wallet, event.block.timestamp);
+  let m = loadMemberById(event.params.memberId);
+  if (m == null) return;
   m.status = event.params.status;
   m.save();
 }
 
 export function handleMemberNameSlugSet(event: MemberNameSlugSet): void {
-  let m = ensureMember(event.params.slug, event.params.wallet, event.block.timestamp);
+  let m = loadMemberById(event.params.memberId);
+  if (m == null) return;
   m.nameSlug = event.params.newNameSlug;
   m.save();
 }
 
 export function handleMemberRemoved(event: MemberRemoved): void {
-  let id = memberId(event.params.slug, event.params.wallet);
-  let m = Member.load(id);
+  let m = loadMemberById(event.params.memberId);
   if (m == null) return;
   m.removedAt = event.block.timestamp;
   m.role = null;
   m.save();
 }
 
+export function handleWalletRotated(event: WalletRotated): void {
+  // Update the Member record's mutable wallet field — memberId stays the
+  // same, role / status / pay history stay attached.
+  let m = loadMemberById(event.params.memberId);
+  if (m != null) {
+    m.wallet = event.params.newWallet;
+    m.save();
+  }
+
+  // If the rotated member is the slug's super admin, refresh the snapshot
+  // on SlugConfig so consumers reading SlugConfig.superAdmin see the new
+  // address without having to join through Member.
+  let cfg = SlugConfig.load(slugId(event.params.slug));
+  if (cfg != null && cfg.superAdminId !== null && (cfg.superAdminId as BigInt).equals(event.params.memberId)) {
+    cfg.superAdmin = event.params.newWallet;
+    cfg.save();
+  }
+
+  // Append-only audit row.
+  let id = walletRotationId(event.transaction.hash, event.logIndex);
+  let row = new WalletRotation(id);
+  row.memberId = event.params.memberId;
+  row.slug = event.params.slug;
+  row.previousWallet = event.params.previousWallet;
+  row.newWallet = event.params.newWallet;
+  row.rotatedAt = event.block.timestamp;
+  row.save();
+}
+
 // ─── Roles ───────────────────────────────────────────────────────────────────
 
 export function handleRoleAssigned(event: RoleAssigned): void {
-  let m = ensureMember(event.params.slug, event.params.wallet, event.block.timestamp);
-  m.role = event.params.roleSlug;
-  m.save();
+  let m = loadMemberById(event.params.memberId);
+  if (m != null) {
+    m.role = event.params.roleSlug;
+    m.save();
+  }
 
-  let raId = roleAssignmentId(event.params.slug, event.params.wallet, event.params.roleSlug);
+  let raId = roleAssignmentId(event.params.memberId, event.params.roleSlug);
   let ra = RoleAssignment.load(raId);
   if (ra == null) {
     ra = new RoleAssignment(raId);
+    ra.memberId = event.params.memberId;
     ra.slug = event.params.slug;
     ra.roleSlug = event.params.roleSlug;
     ra.grantedAt = event.block.timestamp;
@@ -315,7 +369,9 @@ export function handleRoleAssigned(event: RoleAssigned): void {
     ra.grantedAt = event.block.timestamp;
     ra.revokedAt = null;
   }
-  // wallet (Address) → ra.wallet (Bytes) — outside the if branch.
+  // Snapshot the wallet at grant time. Historical reads of this row keep
+  // the wallet that held the role when it was granted, even if the member
+  // has rotated keys since.
   ra.wallet = event.params.wallet;
   ra.save();
 
@@ -337,19 +393,18 @@ export function handleRoleAssigned(event: RoleAssigned): void {
 }
 
 export function handleRoleRevoked(event: RoleRevoked): void {
-  // MembersContract.sol enforces single-role-per-member, so the revoked role is
+  // MembersContract enforces single-role-per-member, so the revoked role is
   // always the current one. Clear unconditionally rather than match-and-clear —
   // the latter requires nesting `(currentRole as Bytes).toHexString() == ...`
   // inside a nullness if, which trips an AssemblyScript compileBinaryOverload
   // crash even when split across locals.
-  let id = memberId(event.params.slug, event.params.wallet);
-  let m = Member.load(id);
+  let m = loadMemberById(event.params.memberId);
   if (m != null) {
     m.role = null;
     m.save();
   }
 
-  let raId = roleAssignmentId(event.params.slug, event.params.wallet, event.params.previousRoleSlug);
+  let raId = roleAssignmentId(event.params.memberId, event.params.previousRoleSlug);
   let ra = RoleAssignment.load(raId);
   if (ra == null) return;
   ra.revokedAt = event.block.timestamp;

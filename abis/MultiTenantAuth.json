@@ -157,9 +157,9 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallets",
-        "type": "address[]",
-        "internalType": "address[]"
+        "name": "memberIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       },
       {
         "name": "roleSlugs_",
@@ -726,6 +726,62 @@
   },
   {
     "type": "function",
+    "name": "getMember",
+    "inputs": [
+      {
+        "name": "memberId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct MembersContract.Member",
+        "components": [
+          {
+            "name": "memberId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "slug",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "nameSlug",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          },
+          {
+            "name": "wallet",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "accountType",
+            "type": "uint8",
+            "internalType": "enum MembersContract.AccountType"
+          },
+          {
+            "name": "status",
+            "type": "uint8",
+            "internalType": "enum MembersContract.MemberStatus"
+          },
+          {
+            "name": "exists",
+            "type": "bool",
+            "internalType": "bool"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getRole",
     "inputs": [
       {
@@ -932,30 +988,6 @@
   },
   {
     "type": "function",
-    "name": "memberByNameSlug",
-    "inputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "memberCountOf",
     "inputs": [
       {
@@ -999,22 +1031,34 @@
   },
   {
     "type": "function",
-    "name": "members",
+    "name": "memberIdByNameSlug",
     "inputs": [
       {
-        "name": "",
+        "name": "slug",
         "type": "bytes32",
         "internalType": "bytes32"
       },
       {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
+        "name": "nameSlug",
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [
       {
-        "name": "nameSlug",
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "memberIdOf",
+    "inputs": [
+      {
+        "name": "slug",
         "type": "bytes32",
         "internalType": "bytes32"
       },
@@ -1022,28 +1066,20 @@
         "name": "wallet",
         "type": "address",
         "internalType": "address"
-      },
+      }
+    ],
+    "outputs": [
       {
-        "name": "accountType",
-        "type": "uint8",
-        "internalType": "enum MembersContract.AccountType"
-      },
-      {
-        "name": "status",
-        "type": "uint8",
-        "internalType": "enum MembersContract.MemberStatus"
-      },
-      {
-        "name": "exists",
-        "type": "bool",
-        "internalType": "bool"
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "membersOf",
+    "name": "memberIdsForSlug",
     "inputs": [
       {
         "name": "slug",
@@ -1054,15 +1090,15 @@
     "outputs": [
       {
         "name": "",
-        "type": "address[]",
-        "internalType": "address[]"
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
     "stateMutability": "view"
   },
   {
     "type": "function",
-    "name": "membersWithRole",
+    "name": "memberIdsWithRole",
     "inputs": [
       {
         "name": "slug",
@@ -1078,8 +1114,8 @@
     "outputs": [
       {
         "name": "",
-        "type": "address[]",
-        "internalType": "address[]"
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
     "stateMutability": "view"
@@ -1102,6 +1138,36 @@
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "onboardExternalMembers",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "inits",
+        "type": "tuple[]",
+        "internalType": "struct MembersContract.ExternalInit[]",
+        "components": [
+          {
+            "name": "wallet",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "nameSlug",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -1444,9 +1510,9 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallets",
-        "type": "address[]",
-        "internalType": "address[]"
+        "name": "memberIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
     "outputs": [],
@@ -1497,9 +1563,9 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallets",
-        "type": "address[]",
-        "internalType": "address[]"
+        "name": "memberIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
     "outputs": [],
@@ -1532,6 +1598,25 @@
   {
     "type": "function",
     "name": "roleOf",
+    "inputs": [
+      {
+        "name": "memberId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "roleOfWallet",
     "inputs": [
       {
         "name": "slug",
@@ -1613,6 +1698,29 @@
   },
   {
     "type": "function",
+    "name": "rotateWallet",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "memberId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "newWallet",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setFallbackAuthorizer",
     "inputs": [
       {
@@ -1652,9 +1760,9 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallets",
-        "type": "address[]",
-        "internalType": "address[]"
+        "name": "memberIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       },
       {
         "name": "types_",
@@ -1675,9 +1783,9 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallet",
-        "type": "address",
-        "internalType": "address"
+        "name": "memberId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "newNameSlug",
@@ -1698,9 +1806,9 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallets",
-        "type": "address[]",
-        "internalType": "address[]"
+        "name": "memberIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       },
       {
         "name": "statuses",
@@ -1852,8 +1960,8 @@
     "outputs": [
       {
         "name": "",
-        "type": "address",
-        "internalType": "address"
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -1928,9 +2036,9 @@
         "internalType": "bytes32"
       },
       {
-        "name": "newSuperAdmin",
-        "type": "address",
-        "internalType": "address"
+        "name": "newSuperAdminId",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -2132,30 +2240,6 @@
   },
   {
     "type": "function",
-    "name": "userRole",
-    "inputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "validity",
     "inputs": [
       {
@@ -2208,9 +2292,15 @@
         "internalType": "bytes32"
       },
       {
+        "name": "superAdminId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
         "name": "superAdmin",
         "type": "address",
-        "indexed": true,
+        "indexed": false,
         "internalType": "address"
       },
       {
@@ -2327,10 +2417,10 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallet",
-        "type": "address",
+        "name": "memberId",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "address"
+        "internalType": "uint256"
       },
       {
         "name": "accountType",
@@ -2352,10 +2442,10 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallet",
-        "type": "address",
+        "name": "memberId",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "address"
+        "internalType": "uint256"
       },
       {
         "name": "oldNameSlug",
@@ -2383,6 +2473,12 @@
         "internalType": "bytes32"
       },
       {
+        "name": "memberId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
         "name": "wallet",
         "type": "address",
         "indexed": true,
@@ -2391,7 +2487,7 @@
       {
         "name": "nameSlug",
         "type": "bytes32",
-        "indexed": true,
+        "indexed": false,
         "internalType": "bytes32"
       },
       {
@@ -2414,9 +2510,15 @@
         "internalType": "bytes32"
       },
       {
+        "name": "memberId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
         "name": "wallet",
         "type": "address",
-        "indexed": true,
+        "indexed": false,
         "internalType": "address"
       }
     ],
@@ -2433,10 +2535,10 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallet",
-        "type": "address",
+        "name": "memberId",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "address"
+        "internalType": "uint256"
       },
       {
         "name": "status",
@@ -2758,16 +2860,22 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallet",
-        "type": "address",
+        "name": "memberId",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "address"
+        "internalType": "uint256"
       },
       {
         "name": "roleSlug",
         "type": "bytes32",
         "indexed": true,
         "internalType": "bytes32"
+      },
+      {
+        "name": "wallet",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       }
     ],
     "anonymous": false
@@ -2864,16 +2972,22 @@
         "internalType": "bytes32"
       },
       {
-        "name": "wallet",
-        "type": "address",
+        "name": "memberId",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "address"
+        "internalType": "uint256"
       },
       {
         "name": "previousRoleSlug",
         "type": "bytes32",
         "indexed": true,
         "internalType": "bytes32"
+      },
+      {
+        "name": "wallet",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       }
     ],
     "anonymous": false
@@ -2996,16 +3110,16 @@
         "internalType": "bytes32"
       },
       {
-        "name": "previous",
-        "type": "address",
+        "name": "previousId",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "address"
+        "internalType": "uint256"
       },
       {
-        "name": "current",
-        "type": "address",
+        "name": "currentId",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "address"
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -3065,6 +3179,37 @@
       },
       {
         "name": "customAddr",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "WalletRotated",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "memberId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "previousWallet",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newWallet",
         "type": "address",
         "indexed": false,
         "internalType": "address"
@@ -3312,6 +3457,11 @@
   {
     "type": "error",
     "name": "SuperAdminLocked",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "WalletAlreadyMember",
     "inputs": []
   }
 ]

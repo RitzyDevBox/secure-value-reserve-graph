@@ -156,7 +156,8 @@ enum SlugStateEnum {
 type SlugConfig @entity(immutable: false) {
   id: ID!                             # slug.toHexString()
   slug: Bytes!
-  superAdmin: Bytes
+  superAdminId: BigInt                # memberId of the current super admin
+  superAdmin: Bytes                   # wallet snapshot of the super admin (rotates with WalletRotated)
   fallbackAuthorizer: Bytes
   state: SlugStateEnum!
   bootstrapped: Boolean!
@@ -164,18 +165,33 @@ type SlugConfig @entity(immutable: false) {
   initialAdmins: [Bytes!]
 }
 
-# One row per (slug, wallet). `role` mirrors the latest active assignment for
-# fast UI lookups; the historical trail lives in RoleAssignment.
+# One row per memberId — the contract's stable global identity. `wallet` is the
+# member's *current* address and is mutable: WalletRotated updates it without
+# changing memberId. `role` mirrors the latest active assignment for fast UI
+# lookups; the historical trail lives in RoleAssignment.
 type Member @entity(immutable: false) {
-  id: ID!                             # slug-wallet
+  id: ID!                             # memberId.toString()
+  memberId: BigInt!
   slug: Bytes!
-  wallet: Bytes!
+  wallet: Bytes!                      # mutable — refreshed on WalletRotated
   nameSlug: Bytes
   accountType: Int                    # AccountType enum: 0=Member, 1=Investor, 2=Contractor
-  status: Int                         # MemberStatus enum: 0=Active, 1=OnLeave, 2=Terminated, 3=Invited, 4=Suspended
+  status: Int                         # MemberStatus enum: 0=Active, 1=PaymentPaused, 2=Terminated
   role: Bytes                         # current roleSlug; null when revoked / removed
   dateAdded: BigInt!
   removedAt: BigInt
+}
+
+# Append-only audit trail of wallet rotations. memberId is the stable identity;
+# previousWallet is the address before the rotation, newWallet is the address
+# after. `Member.wallet` always reflects the most recent newWallet.
+type WalletRotation @entity(immutable: true) {
+  id: ID!                             # txHash-logIndex
+  memberId: BigInt!
+  slug: Bytes!
+  previousWallet: Bytes!
+  newWallet: Bytes!
+  rotatedAt: BigInt!
 }
 
 # One row per (slug, roleSlug). System roles (Admin, Pauser, etc.) are
@@ -193,12 +209,14 @@ type Role @entity(immutable: false) {
   deletedAt: BigInt
 }
 
-# One row per (slug, wallet, roleSlug) assignment. Append-only history; the
-# active-assignment pointer lives on `Member.role`.
+# One row per (memberId, roleSlug) assignment. Append-only history; the
+# active-assignment pointer lives on `Member.role`. Keyed on memberId (stable)
+# rather than wallet (mutable) so the history survives wallet rotations.
 type RoleAssignment @entity(immutable: false) {
-  id: ID!                             # slug-wallet-roleSlug
+  id: ID!                             # memberId-roleSlug
+  memberId: BigInt!
   slug: Bytes!
-  wallet: Bytes!
+  wallet: Bytes!                      # snapshot of the member's wallet at grant time
   roleSlug: Bytes!
   grantedAt: BigInt!
   revokedAt: BigInt
