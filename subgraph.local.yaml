@@ -81,8 +81,10 @@ dataSources:
           handler: handleMemberOnboarded
         - event: MemberAccountTypeSet(indexed bytes32,indexed uint256,uint8)
           handler: handleMemberAccountTypeSet
-        - event: MemberStatusSet(indexed bytes32,indexed uint256,uint8)
-          handler: handleMemberStatusSet
+        - event: MembershipStatusSet(indexed bytes32,indexed uint256,uint8)
+          handler: handleMembershipStatusSet
+        - event: PaymentStatusSet(indexed bytes32,indexed uint256,uint8)
+          handler: handlePaymentStatusSet
         - event: MemberNameSlugSet(indexed bytes32,indexed uint256,bytes32,bytes32)
           handler: handleMemberNameSlugSet
         - event: MemberRemoved(indexed bytes32,indexed uint256,address)

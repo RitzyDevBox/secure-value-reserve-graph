@@ -36,7 +36,7 @@ dataSources:
     name: MultiTenantAuth
     network: mainnet
     source:
-      address: "0x0000000000000000000000000000000000000000"
+      address: "0x233DA861A4635D459bEDA634F154C37dA4bD9BC3"
       abi: MultiTenantAuth
       startBlock: 0
     mapping:
@@ -81,8 +81,10 @@ dataSources:
           handler: handleMemberOnboarded
         - event: MemberAccountTypeSet(indexed bytes32,indexed uint256,uint8)
           handler: handleMemberAccountTypeSet
-        - event: MemberStatusSet(indexed bytes32,indexed uint256,uint8)
-          handler: handleMemberStatusSet
+        - event: MembershipStatusSet(indexed bytes32,indexed uint256,uint8)
+          handler: handleMembershipStatusSet
+        - event: PaymentStatusSet(indexed bytes32,indexed uint256,uint8)
+          handler: handlePaymentStatusSet
         - event: MemberNameSlugSet(indexed bytes32,indexed uint256,bytes32,bytes32)
           handler: handleMemberNameSlugSet
         - event: MemberRemoved(indexed bytes32,indexed uint256,address)
@@ -128,7 +130,7 @@ templates:
       kind: ethereum/events
       apiVersion: 0.0.9
       language: wasm/assemblyscript
-      file: ./src/secure-value-reserve.ts
+      file: ./src/secure-value-reserve.ts    
       entities:
         - SVRPolicyProposed
         - SVRPolicyExecuted

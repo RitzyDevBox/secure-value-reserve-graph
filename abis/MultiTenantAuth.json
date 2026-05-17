@@ -766,9 +766,14 @@
             "internalType": "enum MembersContract.AccountType"
           },
           {
-            "name": "status",
+            "name": "membershipStatus",
             "type": "uint8",
-            "internalType": "enum MembersContract.MemberStatus"
+            "internalType": "enum MembersContract.MembershipStatus"
+          },
+          {
+            "name": "paymentStatus",
+            "type": "uint8",
+            "internalType": "enum MembersContract.PaymentStatus"
           },
           {
             "name": "exists",
@@ -1141,36 +1146,6 @@
   },
   {
     "type": "function",
-    "name": "onboardExternalMembers",
-    "inputs": [
-      {
-        "name": "slug",
-        "type": "bytes32",
-        "internalType": "bytes32"
-      },
-      {
-        "name": "inits",
-        "type": "tuple[]",
-        "internalType": "struct MembersContract.ExternalInit[]",
-        "components": [
-          {
-            "name": "wallet",
-            "type": "address",
-            "internalType": "address"
-          },
-          {
-            "name": "nameSlug",
-            "type": "bytes32",
-            "internalType": "bytes32"
-          }
-        ]
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "onboardMembers",
     "inputs": [
       {
@@ -1200,6 +1175,36 @@
           },
           {
             "name": "roleSlug",
+            "type": "bytes32",
+            "internalType": "bytes32"
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "onboardPayees",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "inits",
+        "type": "tuple[]",
+        "internalType": "struct MembersContract.PayeeInit[]",
+        "components": [
+          {
+            "name": "wallet",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "nameSlug",
             "type": "bytes32",
             "internalType": "bytes32"
           }
@@ -1798,7 +1803,7 @@
   },
   {
     "type": "function",
-    "name": "setMemberStatus",
+    "name": "setMembershipStatus",
     "inputs": [
       {
         "name": "slug",
@@ -1813,7 +1818,30 @@
       {
         "name": "statuses",
         "type": "uint8[]",
-        "internalType": "enum MembersContract.MemberStatus[]"
+        "internalType": "enum MembersContract.MembershipStatus[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setPaymentStatus",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "memberIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "statuses",
+        "type": "uint8[]",
+        "internalType": "enum MembersContract.PaymentStatus[]"
       }
     ],
     "outputs": [],
@@ -2526,7 +2554,7 @@
   },
   {
     "type": "event",
-    "name": "MemberStatusSet",
+    "name": "MembershipStatusSet",
     "inputs": [
       {
         "name": "slug",
@@ -2544,7 +2572,7 @@
         "name": "status",
         "type": "uint8",
         "indexed": false,
-        "internalType": "enum MembersContract.MemberStatus"
+        "internalType": "enum MembersContract.MembershipStatus"
       }
     ],
     "anonymous": false
@@ -2633,6 +2661,31 @@
         "type": "address",
         "indexed": true,
         "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PaymentStatusSet",
+    "inputs": [
+      {
+        "name": "slug",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "memberId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "status",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "enum MembersContract.PaymentStatus"
       }
     ],
     "anonymous": false
@@ -3245,6 +3298,11 @@
   },
   {
     "type": "error",
+    "name": "CannotDemoteToPayeeWhileRoleHeld",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "CustomAuthorizerNotAllowed",
     "inputs": []
   },
@@ -3402,6 +3460,16 @@
   {
     "type": "error",
     "name": "OutOfScope",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PayeeCannotHoldRole",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PayeeOnboardingPathOnly",
     "inputs": []
   },
   {

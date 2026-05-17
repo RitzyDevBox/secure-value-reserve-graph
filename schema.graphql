@@ -175,8 +175,9 @@ type Member @entity(immutable: false) {
   slug: Bytes!
   wallet: Bytes!                      # mutable — refreshed on WalletRotated
   nameSlug: Bytes
-  accountType: Int                    # AccountType enum: 0=Member, 1=Investor, 2=Contractor
-  status: Int                         # MemberStatus enum: 0=Active, 1=PaymentPaused, 2=Terminated
+  accountType: Int                    # AccountType enum: 0=Member, 1=Investor, 2=AuthorizedUser, 3=Payee
+  membershipStatus: Int               # MembershipStatus enum: 0=Active, 1=Terminated
+  paymentStatus: Int                  # PaymentStatus enum: 0=Active, 1=Deactivated
   role: Bytes                         # current roleSlug; null when revoked / removed
   dateAdded: BigInt!
   removedAt: BigInt

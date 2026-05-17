@@ -26,7 +26,8 @@ import {
   OrgContractUnregistered,
   MemberOnboarded,
   MemberAccountTypeSet,
-  MemberStatusSet,
+  MembershipStatusSet,
+  PaymentStatusSet,
   MemberNameSlugSet,
   MemberRemoved,
   WalletRotated,
@@ -281,10 +282,11 @@ export function handleMemberOnboarded(event: MemberOnboarded): void {
   m.wallet = event.params.wallet;
   m.nameSlug = event.params.nameSlug;
   m.accountType = event.params.accountType;
-  // Contract seeds new members at MemberStatus.Active (=0). RoleAssigned may
-  // arrive in the same tx (when MemberInit.roleSlug is non-zero) and update
-  // m.role; that handler doesn't touch status so the Active default holds.
-  m.status = 0; // MemberStatus.Active
+  // Contract seeds new members at MembershipStatus.Active (=0) + PaymentStatus.Active (=0).
+  // Subsequent MembershipStatusSet / PaymentStatusSet events update the
+  // respective axis; defaults stick on first onboard.
+  m.membershipStatus = 0;
+  m.paymentStatus = 0;
   m.removedAt = null;
   m.save();
 }
@@ -296,10 +298,17 @@ export function handleMemberAccountTypeSet(event: MemberAccountTypeSet): void {
   m.save();
 }
 
-export function handleMemberStatusSet(event: MemberStatusSet): void {
+export function handleMembershipStatusSet(event: MembershipStatusSet): void {
   let m = loadMemberById(event.params.memberId);
   if (m == null) return;
-  m.status = event.params.status;
+  m.membershipStatus = event.params.status;
+  m.save();
+}
+
+export function handlePaymentStatusSet(event: PaymentStatusSet): void {
+  let m = loadMemberById(event.params.memberId);
+  if (m == null) return;
+  m.paymentStatus = event.params.status;
   m.save();
 }
 
