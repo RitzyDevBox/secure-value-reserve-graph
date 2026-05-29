@@ -1,43 +1,7 @@
 [
   {
     "type": "constructor",
-    "inputs": [
-      {
-        "name": "name_",
-        "type": "string",
-        "internalType": "string"
-      },
-      {
-        "name": "token_",
-        "type": "address",
-        "internalType": "contract IVotes"
-      },
-      {
-        "name": "timelock_",
-        "type": "address",
-        "internalType": "contract TimelockController"
-      },
-      {
-        "name": "initialVotingDelay",
-        "type": "uint48",
-        "internalType": "uint48"
-      },
-      {
-        "name": "initialVotingPeriod",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "initialProposalThreshold",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "quorumNumerator_",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
+    "inputs": [],
     "stateMutability": "nonpayable"
   },
   {
@@ -92,6 +56,19 @@
         "name": "",
         "type": "bytes32",
         "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "UPGRADE_INTERFACE_VERSION",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "string",
+        "internalType": "string"
       }
     ],
     "stateMutability": "view"
@@ -532,6 +509,49 @@
   },
   {
     "type": "function",
+    "name": "initialize",
+    "inputs": [
+      {
+        "name": "name_",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "token_",
+        "type": "address",
+        "internalType": "contract IVotes"
+      },
+      {
+        "name": "timelock_",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "initialVotingDelay",
+        "type": "uint48",
+        "internalType": "uint48"
+      },
+      {
+        "name": "initialVotingPeriod",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "initialProposalThreshold",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "quorumNumerator_",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "name",
     "inputs": [],
     "outputs": [
@@ -847,6 +867,19 @@
   },
   {
     "type": "function",
+    "name": "proxiableUUID",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "queue",
     "inputs": [
       {
@@ -1089,11 +1122,29 @@
       {
         "name": "newTimelock",
         "type": "address",
-        "internalType": "contract TimelockController"
+        "internalType": "contract TimelockControllerUpgradeable"
       }
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "upgradeToAndCall",
+    "inputs": [
+      {
+        "name": "newImplementation",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "data",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
   },
   {
     "type": "function",
@@ -1138,6 +1189,19 @@
     "type": "event",
     "name": "EIP712DomainChanged",
     "inputs": [],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Initialized",
+    "inputs": [
+      {
+        "name": "version",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
     "anonymous": false
   },
   {
@@ -1305,6 +1369,19 @@
   },
   {
     "type": "event",
+    "name": "Upgraded",
+    "inputs": [
+      {
+        "name": "implementation",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "VoteCast",
     "inputs": [
       {
@@ -1423,7 +1500,34 @@
   },
   {
     "type": "error",
+    "name": "AddressEmptyCode",
+    "inputs": [
+      {
+        "name": "target",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
     "name": "CheckpointUnorderedInsertion",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "ERC1967InvalidImplementation",
+    "inputs": [
+      {
+        "name": "implementation",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ERC1967NonPayable",
     "inputs": []
   },
   {
@@ -1652,7 +1756,12 @@
   },
   {
     "type": "error",
-    "name": "InvalidShortString",
+    "name": "InvalidInitialization",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotInitializing",
     "inputs": []
   },
   {
@@ -1673,12 +1782,28 @@
   },
   {
     "type": "error",
-    "name": "StringTooLong",
+    "name": "UUPSUnauthorizedCallContext",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "UUPSUnsupportedProxiableUUID",
     "inputs": [
       {
-        "name": "str",
-        "type": "string",
-        "internalType": "string"
+        "name": "slot",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "UpgradeNotAuthorized",
+    "inputs": [
+      {
+        "name": "caller",
+        "type": "address",
+        "internalType": "address"
       }
     ]
   }
