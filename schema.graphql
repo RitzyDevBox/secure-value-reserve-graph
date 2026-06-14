@@ -293,3 +293,18 @@ type OrgContract @entity(immutable: false) {
   unregisteredAt: BigInt
   isFoundation: Boolean!
 }
+
+# Cap table — a ShareToken (per-org equity register) deployed via ShareTokenFactory.
+# The frontend resolves an org's cap-table address from this index (by owner). See
+# BareBonesDiamond/CAPTABLE.md and the partner-template shareTokenResolver.
+type ShareTokenDeployed @entity(immutable: true) {
+  id: ID! # shareToken address (lowercased hex)
+  shareToken: Bytes!
+  owner: Bytes!
+  name: String!
+  symbol: String!
+  complianceSBT: Bytes!
+  blockNumber: BigInt!
+  createdAt: BigInt!
+  txHash: Bytes!
+}

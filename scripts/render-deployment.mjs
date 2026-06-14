@@ -76,6 +76,18 @@ function stampDataSource(yaml, name, address, startBlock) {
 manifest = stampDataSource(manifest, "NamespacedCreate3Factory", resolved.factoryAddress, resolved.startBlock);
 manifest = stampDataSource(manifest, "MultiTenantAuth", resolved.multiTenantAuthAddress, mtaStartBlock);
 
+// ShareTokenFactory (cap table) — OPTIONAL. Only stamp when a non-zero address is
+// configured; otherwise the data source keeps its zero-address placeholder and indexes
+// nothing (harmless), so this can't break the existing SVR/DAO/MTA indexing.
+const ZERO_ADDR = "0x0000000000000000000000000000000000000000";
+if (resolved.shareTokenFactoryAddress && resolved.shareTokenFactoryAddress !== ZERO_ADDR) {
+  const stkStartBlock =
+    resolved.shareTokenFactoryStartBlock !== undefined && resolved.shareTokenFactoryStartBlock !== null
+      ? Number(resolved.shareTokenFactoryStartBlock)
+      : Number(resolved.startBlock);
+  manifest = stampDataSource(manifest, "ShareTokenFactory", resolved.shareTokenFactoryAddress, stkStartBlock);
+}
+
 fs.writeFileSync(path.join(cwd, manifestOut), manifest);
 
 const mappingConfig = `import { Bytes } from "@graphprotocol/graph-ts";

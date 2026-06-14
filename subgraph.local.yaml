@@ -120,6 +120,27 @@ dataSources:
         - event: RateLimitSet(indexed bytes32,indexed uint256,uint32,uint32)
           handler: handleRateLimitSet
       file: ./src/multi-tenant-auth.ts
+
+  - kind: ethereum
+    name: ShareTokenFactory
+    network: mainnet
+    source:
+      address: "0x174401AfB79CE41D262e8f961Abe07a10605330a"
+      abi: ShareTokenFactory
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - ShareTokenDeployed
+      abis:
+        - name: ShareTokenFactory
+          file: ./abis/ShareTokenFactory.json
+      eventHandlers:
+        - event: ShareTokenDeployed(indexed address,indexed address,string,string,address)
+          handler: handleShareTokenDeployed
+      file: ./src/share-token-factory.ts
 templates:
   - name: SecureValueReserve
     kind: ethereum

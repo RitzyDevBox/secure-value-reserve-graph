@@ -1,0 +1,282 @@
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "templateProvider_",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "namespacedFactory_",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "auth_",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "auth",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "deployFor",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "cfg",
+        "type": "tuple",
+        "internalType": "struct ShareTokenFactory.ShareTokenConfig",
+        "components": [
+          {
+            "name": "name",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "symbol",
+            "type": "string",
+            "internalType": "string"
+          },
+          {
+            "name": "complianceSBT",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "defaultClass",
+            "type": "tuple",
+            "internalType": "struct IShareToken.ClassParams",
+            "components": [
+              {
+                "name": "name",
+                "type": "string",
+                "internalType": "string"
+              },
+              {
+                "name": "voteWeightBps",
+                "type": "uint32",
+                "internalType": "uint32"
+              },
+              {
+                "name": "vestKind",
+                "type": "uint8",
+                "internalType": "enum IShareToken.VestKind"
+              },
+              {
+                "name": "vestCliff",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "vestDuration",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "vestPeriod",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "chunkAmount",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "transferLockDuration",
+                "type": "uint64",
+                "internalType": "uint64"
+              },
+              {
+                "name": "transferGate",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "payoutPriority",
+                "type": "uint16",
+                "internalType": "uint16"
+              },
+              {
+                "name": "distributionWeightBps",
+                "type": "uint16",
+                "internalType": "uint16"
+              },
+              {
+                "name": "distributionPolicy",
+                "type": "uint8",
+                "internalType": "enum IShareToken.DistributionPolicy"
+              },
+              {
+                "name": "authorizedCap",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "excludeFromFullyDiluted",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "excludeFromVotingTotal",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "unvestedVotes",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "requiresLiquidityEvent",
+                "type": "bool",
+                "internalType": "bool"
+              },
+              {
+                "name": "vestingStrategy",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "transferPolicy",
+                "type": "address",
+                "internalType": "address"
+              },
+              {
+                "name": "voteStrategy",
+                "type": "address",
+                "internalType": "address"
+              }
+            ]
+          },
+          {
+            "name": "initialHolders",
+            "type": "address[]",
+            "internalType": "address[]"
+          },
+          {
+            "name": "initialAmounts",
+            "type": "uint256[]",
+            "internalType": "uint256[]"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "shareToken",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "namespacedFactory",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "templateProvider",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "event",
+    "name": "ShareTokenDeployed",
+    "inputs": [
+      {
+        "name": "shareToken",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "owner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "symbol",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
+      },
+      {
+        "name": "complianceSBT",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "AllocationLengthMismatch",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidAuth",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidNamespacedFactory",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidTemplateProvider",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "TemplateRegistrationFailed",
+    "inputs": []
+  }
+]
