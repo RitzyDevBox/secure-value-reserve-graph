@@ -1,5 +1,6 @@
 import { ShareTokenDeployed as ShareTokenDeployedEvent } from "../generated/ShareTokenFactory/ShareTokenFactory";
 import { ShareTokenDeployed } from "../generated/schema";
+import { ShareToken as ShareTokenTemplate } from "../generated/templates";
 
 // Indexes per-org cap-table (ShareToken) deployments so the frontend can resolve an
 // org's cap-table address by owner. See BareBonesDiamond/CAPTABLE.md and the
@@ -15,4 +16,8 @@ export function handleShareTokenDeployed(event: ShareTokenDeployedEvent): void {
   entity.createdAt = event.block.timestamp;
   entity.txHash = event.transaction.hash;
   entity.save();
+
+  // Spawn a dynamic ShareToken data source so this org's cap table (classes,
+  // grants, holdings) gets indexed going forward. See src/share-token.ts.
+  ShareTokenTemplate.create(event.params.shareToken);
 }

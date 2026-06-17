@@ -15,5 +15,7 @@
   "daoTemplateOwnerAddress": "0xC2309c41d61f1d9Aa1C272612BB2D15167E0cf82",
   "daoTemplateName": "DAO_GOVERNOR",
   "shareTokenFactoryAddress": "0x174401AfB79CE41D262e8f961Abe07a10605330a",
-  "shareTokenFactoryStartBlock": 0
+  "shareTokenFactoryStartBlock": 0,
+  "distributionManagerAddress": "0xd3c2E8a923deff649c9E375901eDb3BC327c1D44",
+  "distributionManagerStartBlock": 0
 }

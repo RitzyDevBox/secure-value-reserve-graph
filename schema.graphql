@@ -308,3 +308,66 @@ type ShareTokenDeployed @entity(immutable: true) {
   createdAt: BigInt!
   txHash: Bytes!
 }
+
+# Cap-table distributions — payouts to share holders against a funded pool.
+# Indexed from the singleton DistributionManager (CREATE3-deterministic).
+type Distribution @entity(immutable: false) {
+  id: ID!                 # decimal distribution id as string
+  distributionId: BigInt!
+  slug: Bytes!
+  shareToken: Bytes!
+  label: Bytes!           # bytes32 UTF-8 name
+  recordDate: BigInt!
+  funded: BigInt!
+  paid: BigInt!
+  status: String!         # "Processing" | "Done" | "Cancelled"
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  txHash: Bytes!
+  payouts: [DistributionPayout!]! @derivedFrom(field: "distribution")
+}
+
+type DistributionPayout @entity(immutable: true) {
+  id: ID!                 # txHash-logIndex
+  distribution: Distribution!
+  classId: BigInt!
+  holder: Bytes!
+  amount: BigInt!
+  blockNumber: BigInt!
+  timestamp: BigInt!
+  txHash: Bytes!
+}
+
+# Cap-table share classes — indexed per ShareToken (dynamic template).
+type ShareClass @entity(immutable: false) {
+  id: ID!                 # <shareToken-lowercased>-<classId>
+  shareToken: Bytes!
+  classId: BigInt!
+  name: String!
+  voteWeightBps: Int!
+  status: String!         # "Active" | "Retired" | "Removed"
+  createdAt: BigInt!
+}
+
+type Grant @entity(immutable: false) {
+  id: ID!                 # <shareToken-lowercased>-<grantId>
+  shareToken: Bytes!
+  grantId: BigInt!
+  classId: BigInt!
+  holder: Bytes!
+  amount: BigInt!         # current granted amount (decremented by forfeitures)
+  status: String!         # "Active" | "Settled" | "Cancelled" | "ClawedBack"
+  forfeited: BigInt!
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  txHash: Bytes!
+}
+
+type ShareHolding @entity(immutable: false) {
+  id: ID!                 # <shareToken-lowercased>-<classId>-<holder-lowercased>
+  shareToken: Bytes!
+  classId: BigInt!
+  holder: Bytes!
+  balance: BigInt!        # net held shares for this (class, holder)
+  updatedAt: BigInt!
+}

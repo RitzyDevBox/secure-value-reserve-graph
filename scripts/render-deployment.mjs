@@ -88,6 +88,18 @@ if (resolved.shareTokenFactoryAddress && resolved.shareTokenFactoryAddress !== Z
   manifest = stampDataSource(manifest, "ShareTokenFactory", resolved.shareTokenFactoryAddress, stkStartBlock);
 }
 
+// DistributionManager (cap-table distributions) — OPTIONAL, same posture as
+// ShareTokenFactory above. Only stamp when a non-zero address is configured;
+// otherwise the data source keeps its zero-address placeholder and indexes
+// nothing. The ShareToken template needs no stamping (dynamic, addressless).
+if (resolved.distributionManagerAddress && resolved.distributionManagerAddress !== ZERO_ADDR) {
+  const distStartBlock =
+    resolved.distributionManagerStartBlock !== undefined && resolved.distributionManagerStartBlock !== null
+      ? Number(resolved.distributionManagerStartBlock)
+      : Number(resolved.startBlock);
+  manifest = stampDataSource(manifest, "DistributionManager", resolved.distributionManagerAddress, distStartBlock);
+}
+
 fs.writeFileSync(path.join(cwd, manifestOut), manifest);
 
 const mappingConfig = `import { Bytes } from "@graphprotocol/graph-ts";

@@ -27,7 +27,44 @@ zero-address no-op. Reasoning: this is the shared subgraph that also powers SVR 
 indexing — a cap-table mistake must not be able to break those. `graph-local-deploy.sh` injects the
 address from `SHARE_TOKEN_FACTORY_ADDRESS` (emitted by the main deploy) into the local config.
 
+## Cap Table distributions + grants/holders
+
+**Why:** the cap-table needs to be queryable beyond just "which ShareToken does this org own?".
+Two new indexing surfaces:
+
+- **Distributions** — payouts to share holders against a funded pool, emitted by the singleton
+  `DistributionManager` (CREATE3-deterministic, one per chain). Indexed as a **static data source**
+  mirroring `ShareTokenFactory` (same optional/zero-address posture, stamped from
+  `distributionManagerAddress`). A `Distribution` row tracks lifecycle (`Processing → Done /
+  Cancelled`) and running `paid`; each `HolderPaid` spawns an immutable `DistributionPayout` derived
+  back to its `Distribution`. `DistributionChunk.paid` / `DistributionDone.totalPaid` are treated as
+  authoritative running totals (overwrite, not increment) so the on-chain engine stays the source of
+  truth even if a `HolderPaid` is missed.
+- **Grants / holders** — per-org `ShareToken` cap tables, indexed as a **dynamic template** (like
+  `SecureValueReserve` / `DAOGovernor`) spawned from the `ShareTokenFactory` `handleShareTokenDeployed`
+  handler via `ShareTokenTemplate.create(...)`. Tracks `ShareClass` (Active/Retired/Removed), `Grant`
+  (Active/Settled/Cancelled/ClawedBack, with `forfeited` accrual), and `ShareHolding` — net shares per
+  `(shareToken, classId, holder)`. Balances move on `GrantIssued` (+), `GrantTransferred` (from→to),
+  and forfeitures (`GrantCancelled` / `GrantClawedBack`, −). `GrantSettled` only reclassifies (no
+  balance change). `GrantTransferred` carries no `grantId`, so it moves holdings only, not `Grant` rows.
+
+**Static vs template split** follows the on-chain shape: `DistributionManager` is a singleton with a
+known address (static, optionally stamped), while each `ShareToken` is deployed per-org at a
+factory-determined address (template, addressless, spawned at deploy time). `voteWeightBps` is uint32
+→ graph-ts types it as `BigInt`; the schema field is `Int!`, so the handler narrows with `.toI32()`.
+
 ## Changelog
+
+### 2026-06-17 — Distributions + grants/holders indexing
+Added cap-table distribution + grant/holder indexing. New entities (`schema.graphql`): `Distribution`,
+`DistributionPayout`, `ShareClass`, `Grant`, `ShareHolding`. New ABIs (`abis/DistributionManager.json`,
+`abis/ShareToken.json`, copied from partner-template). Manifest (`subgraph.yaml`): static
+`DistributionManager` data source (5 events) + dynamic `ShareToken` template (8 events). Mappings:
+`src/distribution-manager.ts` (new), `src/share-token.ts` (new), and `src/share-token-factory.ts`
+edited to spawn the `ShareToken` template. Optional zero-address stamping for `DistributionManager`
+in `scripts/render-deployment.mjs` (`distributionManagerAddress`) + address injection in root
+`scripts/graph-local-deploy.sh` (`DISTRIBUTION_MANAGER_ADDRESS`, already emitted by
+`deploy-anvil-full.sh`). Verified `graph codegen` + `graph build` pass.
 
 ### 2026-06-14 — ShareTokenFactory (cap table) data source
 Added an **optional** `ShareTokenFactory` static data source: `ShareTokenDeployed` entity

@@ -141,6 +141,41 @@ dataSources:
         - event: ShareTokenDeployed(indexed address,indexed address,string,string,address)
           handler: handleShareTokenDeployed
       file: ./src/share-token-factory.ts
+
+  # DistributionManager — singleton cap-table distribution engine
+  # (CREATE3-deterministic). Address and startBlock are stamped per-target by
+  # scripts/render-deployment.mjs from config/deployments/<target>.json
+  # (distributionManagerAddress / distributionManagerStartBlock). Optional: when
+  # the address stays the zero placeholder, distribution indexing is simply off.
+  - kind: ethereum
+    name: DistributionManager
+    network: mainnet
+    source:
+      address: "0xd3c2E8a923deff649c9E375901eDb3BC327c1D44"
+      abi: DistributionManager
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Distribution
+        - DistributionPayout
+      abis:
+        - name: DistributionManager
+          file: ./abis/DistributionManager.json
+      eventHandlers:
+        - event: DistributionCreated(indexed uint256,indexed bytes32,indexed address,bytes32,uint64,uint256)
+          handler: handleDistributionCreated
+        - event: HolderPaid(indexed uint256,indexed uint256,indexed address,uint256)
+          handler: handleHolderPaid
+        - event: DistributionChunk(indexed uint256,uint256,uint256,bool)
+          handler: handleDistributionChunk
+        - event: DistributionDone(indexed uint256,uint256)
+          handler: handleDistributionDone
+        - event: DistributionCancelled(indexed uint256)
+          handler: handleDistributionCancelled
+      file: ./src/distribution-manager.ts
 templates:
   - name: SecureValueReserve
     kind: ethereum
@@ -206,4 +241,39 @@ templates:
           handler: handleVoteCast
         - event: VoteCastWithParams(indexed address,uint256,uint8,uint256,string,bytes)
           handler: handleVoteCastWithParams
+
+  - name: ShareToken
+    kind: ethereum
+    network: mainnet
+    source:
+      abi: ShareToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/share-token.ts
+      entities:
+        - ShareClass
+        - Grant
+        - ShareHolding
+      abis:
+        - name: ShareToken
+          file: ./abis/ShareToken.json
+      eventHandlers:
+        - event: ClassCreated(indexed uint256,string,uint32)
+          handler: handleClassCreated
+        - event: ClassRetired(indexed uint256)
+          handler: handleClassRetired
+        - event: ClassRemoved(indexed uint256)
+          handler: handleClassRemoved
+        - event: GrantIssued(indexed uint256,indexed uint256,indexed address,uint256)
+          handler: handleGrantIssued
+        - event: GrantTransferred(indexed uint256,indexed address,indexed address,uint256)
+          handler: handleGrantTransferred
+        - event: GrantSettled(indexed uint256,indexed address,indexed uint256,uint256)
+          handler: handleGrantSettled
+        - event: GrantCancelled(indexed uint256,indexed address,uint256)
+          handler: handleGrantCancelled
+        - event: GrantClawedBack(indexed uint256,indexed address,uint256)
+          handler: handleGrantClawedBack
 
