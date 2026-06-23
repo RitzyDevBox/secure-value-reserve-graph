@@ -17,5 +17,7 @@
   "shareTokenFactoryAddress": "0x174401AfB79CE41D262e8f961Abe07a10605330a",
   "shareTokenFactoryStartBlock": 0,
   "distributionManagerAddress": "0xd3c2E8a923deff649c9E375901eDb3BC327c1D44",
-  "distributionManagerStartBlock": 0
+  "distributionManagerStartBlock": 0,
+  "shareLendingMarketAddress": "0xF0D5aFa55C34df23b15D2Ed3656394095F34c495",
+  "shareLendingMarketStartBlock": 0
 }

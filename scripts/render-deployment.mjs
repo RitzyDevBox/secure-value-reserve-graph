@@ -100,6 +100,18 @@ if (resolved.distributionManagerAddress && resolved.distributionManagerAddress !
   manifest = stampDataSource(manifest, "DistributionManager", resolved.distributionManagerAddress, distStartBlock);
 }
 
+// ShareLendingMarket (cap-table P2P lending) — OPTIONAL, same posture as
+// DistributionManager above. Only stamp when a non-zero address is configured;
+// otherwise the data source keeps its zero-address placeholder and indexes
+// nothing.
+if (resolved.shareLendingMarketAddress && resolved.shareLendingMarketAddress !== ZERO_ADDR) {
+  const slmStartBlock =
+    resolved.shareLendingMarketStartBlock !== undefined && resolved.shareLendingMarketStartBlock !== null
+      ? Number(resolved.shareLendingMarketStartBlock)
+      : Number(resolved.startBlock);
+  manifest = stampDataSource(manifest, "ShareLendingMarket", resolved.shareLendingMarketAddress, slmStartBlock);
+}
+
 fs.writeFileSync(path.join(cwd, manifestOut), manifest);
 
 const mappingConfig = `import { Bytes } from "@graphprotocol/graph-ts";

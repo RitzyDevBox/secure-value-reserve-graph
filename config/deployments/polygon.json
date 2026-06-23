@@ -13,5 +13,7 @@
   "templateOwnerAddress": "",
   "svrTemplateName": "SVR_TEMPLATE_PROVIDER_V9",
   "daoTemplateOwnerAddress": "",
-  "daoTemplateName": "DAO_GOVERNOR"
+  "daoTemplateName": "DAO_GOVERNOR",
+  "shareLendingMarketAddress": "0x0000000000000000000000000000000000000000",
+  "shareLendingMarketStartBlock": 0
 }

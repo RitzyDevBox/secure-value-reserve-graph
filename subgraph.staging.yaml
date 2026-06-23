@@ -120,6 +120,117 @@ dataSources:
         - event: RateLimitSet(indexed bytes32,indexed uint256,uint32,uint32)
           handler: handleRateLimitSet
       file: ./src/multi-tenant-auth.ts
+
+  - kind: ethereum
+    name: ShareTokenFactory
+    network: mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000000"
+      abi: ShareTokenFactory
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - ShareTokenDeployed
+      abis:
+        - name: ShareTokenFactory
+          file: ./abis/ShareTokenFactory.json
+      eventHandlers:
+        - event: ShareTokenDeployed(indexed address,indexed address,string,string,address)
+          handler: handleShareTokenDeployed
+      file: ./src/share-token-factory.ts
+
+  # DistributionManager — singleton cap-table distribution engine
+  # (CREATE3-deterministic). Address and startBlock are stamped per-target by
+  # scripts/render-deployment.mjs from config/deployments/<target>.json
+  # (distributionManagerAddress / distributionManagerStartBlock). Optional: when
+  # the address stays the zero placeholder, distribution indexing is simply off.
+  - kind: ethereum
+    name: DistributionManager
+    network: mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000000"
+      abi: DistributionManager
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Distribution
+        - DistributionPayout
+      abis:
+        - name: DistributionManager
+          file: ./abis/DistributionManager.json
+      eventHandlers:
+        - event: DistributionCreated(indexed uint256,indexed bytes32,indexed address,bytes32,uint64,uint256)
+          handler: handleDistributionCreated
+        - event: HolderPaid(indexed uint256,indexed uint256,indexed address,uint256)
+          handler: handleHolderPaid
+        - event: DistributionChunk(indexed uint256,uint256,uint256,bool)
+          handler: handleDistributionChunk
+        - event: DistributionDone(indexed uint256,uint256)
+          handler: handleDistributionDone
+        - event: DistributionCancelled(indexed uint256)
+          handler: handleDistributionCancelled
+      file: ./src/distribution-manager.ts
+
+  # ShareLendingMarket — singleton peer-to-peer share-collateralized lending
+  # engine (CREATE3-deterministic). Address and startBlock are stamped per-target
+  # by scripts/render-deployment.mjs from config/deployments/<target>.json
+  # (shareLendingMarketAddress / shareLendingMarketStartBlock). Optional: when the
+  # address stays the zero placeholder, lending indexing is simply off.
+  - kind: ethereum
+    name: ShareLendingMarket
+    network: mainnet
+    source:
+      address: "0x0000000000000000000000000000000000000000"
+      abi: ShareLendingMarket
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - LendingListing
+        - LendingQuote
+        - LendingLoan
+        - LendingOrg
+      abis:
+        - name: ShareLendingMarket
+          file: ./abis/ShareLendingMarket.json
+      eventHandlers:
+        - event: Listed(indexed bytes32,indexed uint256,indexed address,uint256,uint256,uint256,bytes32)
+          handler: handleListed
+        - event: ListingClosed(indexed bytes32,indexed uint256)
+          handler: handleListingClosed
+        - event: Quoted(indexed bytes32,indexed uint256,uint256,indexed address,uint256,uint16,uint64,uint64,address)
+          handler: handleQuoted
+        - event: Accepted(indexed bytes32,indexed uint256,uint256,indexed uint256)
+          handler: handleAccepted
+        - event: QuoteRejected(indexed bytes32,indexed uint256,uint256)
+          handler: handleQuoteRejected
+        - event: QuoteWithdrawn(indexed bytes32,indexed uint256,uint256,indexed address)
+          handler: handleQuoteWithdrawn
+        - event: Funded(indexed bytes32,indexed uint256,indexed address,uint256)
+          handler: handleFunded
+        - event: Repaid(indexed bytes32,indexed uint256,uint256)
+          handler: handleRepaid
+        - event: Foreclosed(indexed bytes32,indexed uint256,indexed address,uint256)
+          handler: handleForeclosed
+        - event: DepositForfeited(indexed bytes32,indexed uint256,uint256,address)
+          handler: handleDepositForfeited
+        - event: ReleaseApproved(indexed bytes32,indexed uint256,indexed address)
+          handler: handleReleaseApproved
+        - event: Released(indexed bytes32,indexed uint256,indexed address,bool)
+          handler: handleReleased
+        - event: ShareTokenSet(indexed bytes32,indexed address)
+          handler: handleShareTokenSet
+        - event: ConfigSet(uint64,uint16,uint64,address)
+          handler: handleConfigSet
+      file: ./src/share-lending-market.ts
 templates:
   - name: SecureValueReserve
     kind: ethereum
@@ -185,4 +296,39 @@ templates:
           handler: handleVoteCast
         - event: VoteCastWithParams(indexed address,uint256,uint8,uint256,string,bytes)
           handler: handleVoteCastWithParams
+
+  - name: ShareToken
+    kind: ethereum
+    network: mainnet
+    source:
+      abi: ShareToken
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/share-token.ts
+      entities:
+        - ShareClass
+        - Grant
+        - ShareHolding
+      abis:
+        - name: ShareToken
+          file: ./abis/ShareToken.json
+      eventHandlers:
+        - event: ClassCreated(indexed uint256,string,uint32)
+          handler: handleClassCreated
+        - event: ClassRetired(indexed uint256)
+          handler: handleClassRetired
+        - event: ClassRemoved(indexed uint256)
+          handler: handleClassRemoved
+        - event: GrantIssued(indexed uint256,indexed uint256,indexed address,uint256)
+          handler: handleGrantIssued
+        - event: GrantTransferred(indexed uint256,indexed address,indexed address,uint256)
+          handler: handleGrantTransferred
+        - event: GrantSettled(indexed uint256,indexed address,indexed uint256,uint256)
+          handler: handleGrantSettled
+        - event: GrantCancelled(indexed uint256,indexed address,uint256)
+          handler: handleGrantCancelled
+        - event: GrantClawedBack(indexed uint256,indexed address,uint256)
+          handler: handleGrantClawedBack
 

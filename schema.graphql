@@ -371,3 +371,83 @@ type ShareHolding @entity(immutable: false) {
   balance: BigInt!        # net held shares for this (class, holder)
   updatedAt: BigInt!
 }
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ShareLendingMarket — singleton peer-to-peer collateralized lending against
+# cap-table (SPV) shares. CREATE3-deterministic, keyed per-org by `slug`.
+# Mappings live in src/share-lending-market.ts. Several listing/quote/loan fields
+# the UI needs are not in the events; the handlers read them via eth_call against
+# the public getters (listings/quotes/loans). See BareBonesDiamond/SHARE_LENDING.md.
+# ─────────────────────────────────────────────────────────────────────────────
+
+type LendingListing @entity(immutable: false) {
+  id: ID!            # `${slug.toHexString()}-${listingId}`
+  market: Bytes!
+  slug: Bytes!
+  listingId: BigInt!
+  borrower: Bytes!
+  classId: BigInt!
+  shares: BigInt!
+  wantAmount: BigInt!
+  maxRateBps: Int!
+  termSeconds: BigInt!
+  metadataHash: Bytes!
+  requireDeposit: Boolean!
+  depositAmount: BigInt!
+  status: String!     # "Open" | "Accepted" | "Closed"
+  loanId: BigInt
+  createdAt: BigInt!
+  updatedAt: BigInt!
+  txHash: Bytes!
+  quotes: [LendingQuote!]! @derivedFrom(field: "listing")
+  loan: LendingLoan
+}
+
+type LendingQuote @entity(immutable: false) {
+  id: ID!            # `${slug.toHexString()}-${listingId}-${quoteId}`
+  listing: LendingListing!
+  slug: Bytes!
+  listingId: BigInt!
+  quoteId: BigInt!
+  lender: Bytes!
+  amount: BigInt!
+  rateBps: Int!
+  termSeconds: BigInt!
+  expiry: BigInt!
+  deposit: BigInt!
+  mediator: Bytes!
+  status: String!     # "Open" | "Accepted" | "Rejected" | "Funded" | "Withdrawn"
+  createdAt: BigInt!
+  updatedAt: BigInt!
+}
+
+type LendingLoan @entity(immutable: false) {
+  id: ID!            # `${slug.toHexString()}-${loanId}`
+  slug: Bytes!
+  loanId: BigInt!
+  listing: LendingListing!
+  listingId: BigInt!
+  quoteId: BigInt!
+  borrower: Bytes!
+  lender: Bytes!
+  classId: BigInt!
+  shares: BigInt!
+  principal: BigInt!
+  rateBps: Int!
+  penaltyRateBps: Int!
+  termSeconds: BigInt!
+  acceptedAt: BigInt!
+  startedAt: BigInt
+  maturity: BigInt
+  mediator: Bytes!
+  status: String!     # "Accepted" | "Active" | "Repaid" | "Foreclosed" | "Released"
+  updatedAt: BigInt!
+}
+
+type LendingOrg @entity(immutable: false) {
+  id: ID!            # slug.toHexString()
+  slug: Bytes!
+  shareToken: Bytes!
+  market: Bytes!
+  updatedAt: BigInt!
+}

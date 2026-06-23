@@ -53,7 +53,45 @@ known address (static, optionally stamped), while each `ShareToken` is deployed 
 factory-determined address (template, addressless, spawned at deploy time). `voteWeightBps` is uint32
 → graph-ts types it as `BigInt`; the schema field is `Int!`, so the handler narrows with `.toI32()`.
 
+## ShareLendingMarket (P2P share-collateralized lending)
+
+**Why:** the cap-table financing surface needs its peer-to-peer lending market queryable — open
+listings to browse, a listing's incoming quotes, and the resulting loan lifecycle. Emitted by the
+singleton `ShareLendingMarket` (CREATE3-deterministic, one per chain), keyed per-org by `slug`,
+the debt sibling of `EscrowOffers`. See `BareBonesDiamond/SHARE_LENDING.md`.
+
+Indexed as a **static data source** with the same **optional/zero-address posture** as
+`DistributionManager` / `ShareTokenFactory` (stamped from `shareLendingMarketAddress` only when
+non-zero; zero-address no-op otherwise — must not be able to break the shared SVR/DAO/MTA/cap-table
+indexing). Entities: `LendingListing` (Open → Accepted → Closed), `LendingQuote` (Open → Accepted /
+Rejected / Funded / Withdrawn), `LendingLoan` (Accepted → Active → Repaid / Foreclosed / Released),
+and `LendingOrg` (per-slug shareToken registry from `ShareTokenSet`).
+
+**Events alone are insufficient — handlers read getters via eth_call.** Several UI-needed fields are
+not carried in the events: a listing's `maxRateBps` / `termSeconds` / `requireDeposit` /
+`depositAmount` / `mediator`; a quote's `deposit`; a loan's full terms + `startedAt` / `maturity`.
+The handlers bind the contract and read the public getters (`listings(slug,id)`, `quotes(slug,lid,
+qid)`, `loans(slug,id)`) with `try_*` guards, skipping on revert (and defaulting the fields) so a
+missed-startBlock entity can't crash the mapping. The Solidity structs carry no nested mappings, so
+the getters expand to flat multi-return tuples → graph-ts generates `...Result` classes with
+`getFieldName()` accessors. **uint64 getter/event outputs are typed `BigInt` by graph-ts** (not
+`u64`) — assigned directly, no `BigInt.fromU64` wrapping; **uint16 → `i32`** (matches the `Int!`
+rate-bps fields). `ConfigSet` (global, contract-wide) and `ReleaseApproved` (interim signal) are
+intentional no-ops — the terminal `Released` event flips the loan.
+
 ## Changelog
+
+### 2026-06-21 — ShareLendingMarket (P2P lending) indexing
+Added an **optional** `ShareLendingMarket` static data source. New entities (`schema.graphql`):
+`LendingListing`, `LendingQuote`, `LendingLoan`, `LendingOrg`. New ABI (`abis/ShareLendingMarket.json`,
+copied from `BareBonesDiamond/out/ShareLendingMarket.sol/ShareLendingMarket.json`). Manifest
+(`subgraph.yaml`): static `ShareLendingMarket` data source (14 events). Mapping:
+`src/share-lending-market.ts` (new) — reads off-event listing/quote/loan fields via guarded
+`try_listings` / `try_quotes` / `try_loans` eth_calls. Optional zero-address stamping in
+`scripts/render-deployment.mjs` (`shareLendingMarketAddress`) + config keys
+`shareLendingMarketAddress` / `shareLendingMarketStartBlock` added to all three
+`config/deployments/*.json` (anvil/staging/polygon, zero address for now — the deploy stamps the real
+one). Verified `render:anvil` + `graph codegen` + `graph build` pass.
 
 ### 2026-06-17 — Distributions + grants/holders indexing
 Added cap-table distribution + grant/holder indexing. New entities (`schema.graphql`): `Distribution`,
